@@ -11,6 +11,18 @@
     "install": "npm install",
     "deploy": "vercel --prod"
   },
+
+    "scripts": {
+      "clean": "rd /s /q node_modules && del package-lock.json",
+      "install": "npm install",
+      "deploy": "vercel --force --prod",
+      "full-deploy": "npm run clean && npm run install && npm run deploy"
+    },
+    "dependencies": {
+      "axios": "^1.6.2",
+      "crypto-js": "^4.1.1",
+      "@vercel/node": "^4.0.4"
+    },
   "keywords": [],
   "author": "",
   "license": "ISC",
