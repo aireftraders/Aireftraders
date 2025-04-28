@@ -2,14 +2,20 @@
   "name": "aireftraders",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo \"No build step required\"",
+    "start": "vercel dev"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "axios": "^1.9.0"
-  }
+  },
+  "engines": {
+    "node": ">=18.x"
+  },
+  "description": ""
 }
