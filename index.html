@@ -42,6 +42,8 @@
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
     <!-- Include Paystack Payment -->
     <script src="https://js.paystack.co/v1/inline.js"></script>
+    <!-- Paystack Integration Script -->
+    <script src="js/paystack-integration.js"></script>
     <style>
         :root {
             --primary: #6C5CE7;
@@ -2497,47 +2499,24 @@
                         return;
                     }
                     
-                    // If verification successful, proceed with payment
-                    const handler = PaystackPop.setup({
-                        key: 'pk_live_afebedf32b931abd3b35ab6b4d63e62bc6d1d3e2', // Updated Paystack public key
-                        email: 'user@example.com', // Replace with user's email
-                        amount: 105000, // ₦1,050 in kobo
-                        ref: 'BV-' + Date.now(),
-                        metadata: {
-                            custom_fields: [
-                                { display_name: "Bank Name", variable_name: "bank_name", value: bankName },
-                                { display_name: "Account Number", variable_name: "account_number", value: accountNumber }
-                            ]
-                        },
-                        callback: function(response) {
-                            // Verify payment with backend
-                            verifyPayment(response.reference).then(data => {
-                                if (data.status) {
-                                    // Payment verified successfully
-                                    userData.verified = true;
-                                    userData.bankDetails = {
-                                        bankName: bankName,
-                                        accountNumber: accountNumber,
-                                        accountName: verificationResponse.data.account_name
-                                    };
-                                    userData.balance += 500; // Add the ₦500 test deposit
-                                    saveUserData();
-                                    updateUI();
-                                    
-                                    showSuccess(
-                                        'Verification Successful',
-                                        'Your bank account has been verified and ₦500 has been credited to your account.'
-                                    );
-                                } else {
-                                    showNotification('Payment verification failed: ' + data.message);
-                                }
-                            });
-                        },
-                        onClose: function() {
-                            alert('Payment window closed.');
-                        }
-                    });
-                    handler.openIframe();
+                    // Set the account name from verification response
+                    document.getElementById('accountName').value = verificationResponse.data.account_name;
+
+                    // Then initiate payment with backend
+                    const paymentResponse = await initiatePayment(
+                        'user@example.com', // Replace with user's email
+                        accountNumber,
+                        bankName,
+                        verificationResponse.data.account_name
+                    );
+                    
+                    if (!paymentResponse.status) {
+                        alert('Payment initiation failed: ' + paymentResponse.message);
+                        return;
+                    }
+
+                    // Redirect to Paystack payment page
+                    window.location.href = paymentResponse.data.authorization_url;
                 } catch (error) {
                     console.error('Error during verification:', error);
                     alert('An error occurred during verification. Please try again.');
@@ -3120,59 +3099,116 @@
             }
         });
 
+        // ===== PAYSTACK INTEGRATION FUNCTIONS =====
+        
         // Function to verify account details with backend
-        async function verifyAccount(accountNumber, bankName) {
+        async function verifyAccount(accountNumber, bankCode) {
             try {
-                const response = await fetch('https://v0-paystack-backend-setup.vercel.app/api/verify-account', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        accountNumber: accountNumber,
-                        bankCode: bankName // Using bank name as code for simplicity
-                    }),
-                });
-                
-                return await response.json();
+                const response = await window.PaystackIntegration.verifyAccount(accountNumber, bankCode);
+                return response;
             } catch (error) {
                 console.error('Error verifying account:', error);
                 return { status: false, message: 'Failed to verify account' };
             }
         }
 
-        // Function to verify payment with backend
-        async function verifyPayment(reference) {
+        // Function to initiate payment with backend
+        async function initiatePayment(email, accountNumber, bankCode, accountName) {
             try {
-                const response = await fetch(`https://v0-paystack-backend-setup.vercel.app/api/verify-payment?reference=${reference}`);
-                return await response.json();
+                const response = await window.PaystackIntegration.initiatePayment(email, accountNumber, bankCode, accountName);
+                
+                if (response.status && response.data.authorization_url) {
+                    // Redirect to Paystack payment page
+                    window.location.href = response.data.authorization_url;
+                }
+                
+                return response;
+            } catch (error) {
+                console.error('Error initiating payment:', error);
+                return { status: false, message: 'Failed to initiate payment' };
+            }
+        }
+
+        // Function to verify payment on the success page
+        async function verifyPayment() {
+            try {
+                // Get reference from URL query parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const reference = urlParams.get('reference');
+                
+                if (!reference) {
+                    return { status: false, message: 'No reference found' };
+                }
+                
+                const response = await window.PaystackIntegration.verifyPayment(reference);
+                
+                if (response.status) {
+                    // Payment verified successfully
+                    // Update UI to show verification status
+                    userData.verified = true;
+                    userData.bankDetails = {
+                        bankName: response.data.bankName,
+                        accountNumber: response.data.accountNumber,
+                        accountName: response.data.accountName
+                    };
+                    
+                    // Save the updated user data
+                    await saveUserData();
+                    
+                    // Update the UI
+                    updateUI();
+                    
+                    // Show success message
+                    showSuccess(
+                        'Account Verified!',
+                        'Your bank account has been successfully verified. You can now withdraw your earnings.'
+                    );
+                }
+                
+                return response;
             } catch (error) {
                 console.error('Error verifying payment:', error);
                 return { status: false, message: 'Failed to verify payment' };
             }
         }
 
-        // Function to initiate payment with backend
-        async function initiatePayment(email, accountNumber, bankCode, accountName) {
+        // Populate bank dropdown from API
+        async function populateBankDropdown() {
             try {
-                const response = await fetch('https://v0-paystack-backend-setup.vercel.app/api/initialize-payment', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        email: email,
-                        accountNumber: accountNumber,
-                        bankCode: bankCode,
-                        accountName: accountName
-                    }),
-                });
+                const bankSelect = document.getElementById('bankName');
+                const response = await window.PaystackIntegration.fetchBanks();
                 
-                return await response.json();
+                if (response.status && response.data) {
+                    // Clear existing options except the first one and "Other"
+                    while (bankSelect.options.length > 2) {
+                        bankSelect.remove(1);
+                    }
+                    
+                    // Sort banks alphabetically
+                    const sortedBanks = response.data.sort((a, b) => a.name.localeCompare(b.name));
+                    
+                    // Add banks to dropdown
+                    sortedBanks.forEach(bank => {
+                        const option = document.createElement('option');
+                        option.value = bank.code;
+                        option.textContent = bank.name;
+                        bankSelect.insertBefore(option, bankSelect.lastElementChild);
+                    });
+                }
             } catch (error) {
-                console.error('Error initiating payment:', error);
-                return { status: false, message: 'Failed to initiate payment' };
+                console.error('Error populating bank dropdown:', error);
             }
+        }
+
+        // On DOMContentLoaded - populate bank dropdown
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Populate bank dropdown
+            populateBankDropdown();
+        });
+
+        // Check for payment verification on page load if we're on the success page
+        if (window.location.pathname.includes('verification-success')) {
+            verifyPayment();
         }
     </script>
 </body>
