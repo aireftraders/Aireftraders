@@ -9,35 +9,16 @@
     "start": "vercel dev",
     "clean": "rm -rf node_modules package-lock.json",
     "install": "npm install",
-    "deploy": "vercel --prod"
+    "deploy": "vercel --prod",
+    "full-deploy": "npm run clean && npm run install && npm run deploy"
   },
-
-    "scripts": {
-      "clean": "rd /s /q node_modules && del package-lock.json",
-      "install": "npm install",
-      "deploy": "vercel --force --prod",
-      "full-deploy": "npm run clean && npm run install && npm run deploy"
-    },
-    "dependencies": {
-      "axios": "^1.6.2",
-      "crypto-js": "^4.1.1",
-      "@vercel/node": "^4.0.4"
-    },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.9.0"
+    "axios": "^1.9.0",
+    "crypto-js": "^4.1.1",
+    "@vercel/node": "^4.0.4"
   },
-  "engines": {
-    "node": "18.x"
-  },
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/index.html"
-    }
-  ],
-  "devDependencies": {},
-  "description": ""
-}
+    "rewrites": []
+  }
