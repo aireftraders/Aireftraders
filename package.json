@@ -6,7 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "echo \"No build step required\"",
-    "start": "vercel dev"
+    "start": "vercel dev",
+    "clean": "rm -rf node_modules package-lock.json",
+    "install": "npm install",
+    "deploy": "vercel --prod"
   },
   "keywords": [],
   "author": "",
@@ -15,10 +18,14 @@
     "axios": "^1.9.0"
   },
   "engines": {
-    "node": ">=18.x"
+    "node": "18.x"
   },
-  "description": "",
   "rewrites": [
-    { "source": "/", "destination": "/index.html" }
-  ]
+    {
+      "source": "/",
+      "destination": "/index.html"
+    }
+  ],
+  "devDependencies": {},
+  "description": ""
 }
