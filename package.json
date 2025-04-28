@@ -1,32 +1,16 @@
 {
   "name": "aireftraders",
   "version": "1.0.0",
-  "description": "A backend service for AI-powered trading operations",
-  "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "jest --coverage",
-    "build": "tsc",
-    "start": "vercel dev",
-    "dev": "npm run build && vercel dev",
-    "clean": "rm -rf node_modules package-lock.json",
-    "deploy": "vercel --prod",
+    "clean": "rd /s /q node_modules && del package-lock.json",
+    "deploy": "vercel deploy --prod --regions iad1",
     "full-deploy": "npm run clean && npm install && npm run deploy"
   },
-  "keywords": ["trading", "ai", "crypto", "vercel", "serverless"],
-  "author": "Your Name <your.email@example.com>",
-  "license": "ISC",
   "dependencies": {
-    "axios": "^1.9.0",
+    "axios": "^1.6.2",
     "crypto-js": "^4.1.1",
-    "@vercel/node": "^2.14.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0",
-    "@types/crypto-js": "^4.1.0",
-    "@types/axios": "^1.6.0",
-    "jest": "^29.0.0"
+    "@vercel/node": "^3.0.0"
   },
   "engines": {
     "node": ">=18.x"
