@@ -4,16 +4,19 @@
   "type": "module",
   "scripts": {
     "clean": "rd /s /q node_modules && del package-lock.json",
+    "build": "echo 'Build step (optional)'",
+    "start": "node index.js",
+    "dev": "node index.js",
     "deploy": "vercel deploy --prod --regions iad1",
     "full-deploy": "npm run clean && npm install && npm run deploy"
   },
   "dependencies": {
-    "@vercel/node": "^2.3.0",
+    "@vercel/node": "^5.1.14",
     "axios": "^1.9.0",
     "crypto-js": "^4.2.0",
     "rimraf": "^6.0.1"
   },
   "engines": {
-    "node": ">=18.x"
+    "node": "18.x"
   }
 }
