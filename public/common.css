@@ -1,0 +1,107 @@
+/* ===== THEME VARIABLES ===== */
+:root {
+    --primary: #6C5CE7;
+    --secondary: #00CEFF;
+    --dark: #2D3436;
+    --light: #F5F6FA;
+    --success: #00B894;
+    --danger: #D63031;
+    --warning: #FDCB6E;
+    --nigerian-green: #008753;
+    --nigerian-white: #FFFFFF;
+    --nigerian-green-light: #E5F5EE;
+    
+    /* Theme variables */
+    --bg-color: #F5F6FA;
+    --text-color: #2D3436;
+    --card-bg: #FFFFFF;
+    --border-color: #e0e0e0;
+    --shadow-color: rgba(0,0,0,0.1);
+}
+
+/* Dark theme variables */
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #E0E0E0;
+    --card-bg: #1E1E1E;
+    --border-color: #333333;
+    --shadow-color: rgba(0,0,0,0.3);
+    --dark: #E0E0E0;
+    --light: #121212;
+    --nigerian-green-light: #1E3D31;
+}
+
+/* ===== BASE STYLES ===== */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+/* ===== THEME TOGGLE STYLES ===== */
+.theme-toggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1100;
+}
+
+.theme-toggle-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+.theme-toggle-btn:hover {
+    background: var(--bg-color);
+}
+
+.theme-icon {
+    font-size: 16px;
+}
+
+/* ===== LANGUAGE SELECTOR STYLES ===== */
+.language-selector {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: var(--card-bg);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px var(--shadow-color);
+    z-index: 1100;
+}
+
+.language-selector label {
+    margin-right: 5px;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.language-selector select {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+/* ===== COMMON COMPONENTS ===== */
+.container {
+    max-width: 100%;
+    padding: 15px;
+    padding-top: 70px; /* Account for fixed elements */
+}
+
+/* Add other common styles that should apply to all pages */
