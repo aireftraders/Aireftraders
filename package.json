@@ -6,7 +6,7 @@
     "clean": "rd /s /q node_modules && del package-lock.json",
     "build": "echo 'Build step (optional)'",
     "start": "node index.js",
-    "dev": "node index.js",
+    "dev": "nodemon index.js",
     "deploy": "vercel deploy --prod --regions iad1",
     "full-deploy": "npm run clean && npm install && npm run deploy"
   },
@@ -14,7 +14,11 @@
     "@vercel/node": "^5.1.14",
     "axios": "^1.9.0",
     "crypto-js": "^4.2.0",
+    "express": "^4.21.2",
     "rimraf": "^6.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   },
   "engines": {
     "node": "18.x"
