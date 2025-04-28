@@ -988,23 +988,23 @@
             top: 10px;
             right: 10px;
             background: var(--card-bg);
-            padding: 10px;
-            border-radius: 8px;
+            padding: 5px 10px;
+            border-radius: 20px;
             box-shadow: 0 2px 5px var(--shadow-color);
-            z-index: 1100; /* Higher than FOMO banner's z-index */
-        }
-
-        .language-selector label {
-            margin-right: 5px;
-            font-weight: bold;
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            cursor: pointer;
         }
 
         .language-selector select {
-            padding: 5px;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-            background-color: var(--card-bg);
+            border: none;
+            background: none;
+            font-size: 14px;
             color: var(--text-color);
+            cursor: pointer;
         }
         
         /* Theme Toggle Switch */
@@ -1036,6 +1036,27 @@
         .theme-icon {
             font-size: 16px;
         }
+
+        /* Add styles for blinking notification */
+        .notification-indicator {
+            position: fixed;
+            top: 10px;
+            right: 60px; /* Adjusted to avoid overlap with language selector */
+            background: red;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1200;
+            display: none; /* Hidden by default */
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body>
@@ -1048,15 +1069,17 @@
     </div>
 
     <!-- Language Selector -->
-    <div class="language-selector">
-        <label for="languageDropdown">🌐 Select Language:</label>
-        <select id="languageDropdown">
-            <option value="en" selected>English</option>
-            <option value="ha">Hausa</option>
-            <option value="yo">Yoruba</option>
-            <option value="ig">Igbo</option>
+    <div class="language-selector" id="languageSelector">
+        🌐 <select id="languageDropdown">
+            <option value="en" selected>EN</option>
+            <option value="ha">HA</option>
+            <option value="yo">YO</option>
+            <option value="ig">IG</option>
         </select>
     </div>
+
+    <!-- Notification Indicator -->
+    <div id="notificationIndicator" class="notification-indicator">New Notification</div>
 
     <div class="container">
         <div class="app-bar">
@@ -3099,6 +3122,25 @@
             // Scroll to the Future Investment Opportunities section
             document.querySelector('.investment-section').scrollIntoView({ behavior: 'smooth' });
         }
+
+        // Listen for notifications from admin.html
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'adminNotification') {
+                const notificationIndicator = document.getElementById('notificationIndicator');
+                notificationIndicator.style.display = 'block'; // Show the blinking notification
+                notificationIndicator.textContent = event.data.message || 'New Notification';
+            }
+        });
+
+        // Example: Simulate receiving a notification from admin.html
+        setTimeout(() => {
+            window.postMessage({ type: 'adminNotification', message: 'Check out the latest updates!' }, '*');
+        }, 5000);
+
+        // Hide notification indicator when clicked
+        document.getElementById('notificationIndicator').addEventListener('click', function() {
+            this.style.display = 'none'; // Hide the notification
+        });
     </script>
 </body>
 </html>
