@@ -191,54 +191,6 @@
             font-weight: 700;
         }
         
-        /* Game Console Button Styles */
-        .game-console-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #6C5CE7, #00CEFF);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
-            cursor: pointer;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            display: none;
-        }
-
-        .game-console-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
-        }
-
-        .game-console-btn::before {
-            content: "";
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M21 7H3c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm0 8H3V9h18v6z"/><circle cx="8" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="16" cy="12" r="1.5"/></svg>') no-repeat center center;
-            background-size: contain;
-        }
-
-        .game-console-text {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            color: var(--primary);
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-align: center;
-            background: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: none;
-        }
-        
         @media (max-width: 768px) {
             .ad-container {
                 padding: 1.5rem;
@@ -260,12 +212,6 @@
             .progress-step {
                 width: 2rem;
                 height: 2rem;
-                font-size: 0.8rem;
-            }
-            
-            .game-console-text {
-                bottom: 85px;
-                right: 15px;
                 font-size: 0.8rem;
             }
         }
@@ -298,9 +244,6 @@
         
         <button class="watch-ad-btn" id="watchAdBtn">Watch Ad</button>
     </div>
-
-    <div class="game-console-btn" id="gameConsoleBtn"></div>
-    <div class="game-console-text" id="gameConsoleText">Play Games</div>
 
     <script>
         // Initialize Dexie database
@@ -379,9 +322,6 @@
                 userData = user;
                 currentAdCount = userData.adsWatched || 0;
                 
-                // Check if we should show the game console button
-                checkGameConsoleButton();
-                
                 return userData;
             } catch (error) {
                 console.error('Error loading user data:', error);
@@ -399,27 +339,6 @@
             }
         }
 
-        // Check if game console button should be shown
-        function checkGameConsoleButton() {
-            if (!userData) return;
-            
-            const now = Date.now();
-            const lastWatchTime = userData.lastAdWatchTime || 0;
-            
-            // Show button if user has completed ads and is within cooldown period
-            if (userData.adsWatched >= totalAds && (now - lastWatchTime) < accessCooldown) {
-                document.getElementById('gameConsoleBtn').style.display = 'flex';
-                document.getElementById('gameConsoleText').style.display = 'block';
-                userData.showGamesButton = true;
-            } else {
-                document.getElementById('gameConsoleBtn').style.display = 'none';
-                document.getElementById('gameConsoleText').style.display = 'none';
-                userData.showGamesButton = false;
-            }
-            
-            saveUserData();
-        }
-
         // Check access status
         function checkAccessStatus() {
             if (!userData) return false;
@@ -431,11 +350,6 @@
             if (userData.adsWatched >= totalAds && (now - lastWatchTime) < accessCooldown) {
                 accessDenied = true;
                 showAccessDenied(lastWatchTime + accessCooldown, redirectTo);
-                
-                // Show games button during cooldown
-                userData.showGamesButton = true;
-                saveUserData();
-                checkGameConsoleButton();
                 return true;
             }
             
@@ -443,9 +357,7 @@
             if (userData.adsWatched >= totalAds && (now - lastWatchTime) >= accessCooldown) {
                 userData.adsWatched = 0;
                 userData.lastAdWatchTime = 0;
-                userData.showGamesButton = false;
                 saveUserData();
-                checkGameConsoleButton();
             }
             
             return false;
@@ -481,12 +393,6 @@
             const remaining = expiryTime - Date.now();
             if (remaining <= 0) {
                 clearInterval(cooldownInterval);
-                
-                // Hide games button when cooldown ends
-                userData.showGamesButton = false;
-                saveUserData();
-                checkGameConsoleButton();
-                
                 window.location.reload();
                 return;
             }
@@ -502,14 +408,6 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Load user data
             await loadUserData();
-            
-            // Check if we should show games button from previous state
-            checkGameConsoleButton();
-            
-            // Setup game console button
-            document.getElementById('gameConsoleBtn').addEventListener('click', () => {
-                window.location.href = 'game.html?fromConsole=true';
-            });
             
             // Check access status
             if (checkAccessStatus()) return;
@@ -659,11 +557,6 @@
             }
 
             if (currentAdCount >= totalAds) {
-                // Show game console button when all ads are completed
-                userData.showGamesButton = true;
-                await saveUserData();
-                checkGameConsoleButton();
-                
                 grantAccessAndRedirect();
                 return;
             }
