@@ -851,6 +851,8 @@
                 const timeSinceLastReset = now - (savedData.gameTimerStart || 0);
                 
                 if (fromAds && timeSinceLastReset >= 55 * 60 * 1000) {
+                    // Reset game attempts only if coming from ads.html after watching 20 ads
+                    // and 55 minutes have passed since last reset
                     gameState.memory.attempts = 10;
                     gameState.dice.attempts = 10;
                     gameState.snake.attempts = 10;
@@ -878,7 +880,41 @@
                     });
                     startGameTimer();
                 } else if (timeSinceLastReset < 55 * 60 * 1000) {
-                    // Prevent reset if 55 minutes have not passed
+                    // If within the 55-minute window, use existing state
+                    if (savedData?.gameState) {
+                        gameState.memory.attempts = savedData.gameState.memory?.attempts || 10;
+                        gameState.dice.attempts = savedData.gameState.dice?.attempts || 10;
+                        gameState.snake.attempts = savedData.gameState.snake?.attempts || 10;
+                        gameState.trivia.attempts = savedData.gameState.trivia?.attempts || 10;
+                        gameState.wheel.attempts = savedData.gameState.wheel?.attempts || 10;
+
+                        // Keep other stats too
+                        gameState.memory.wins = savedData.gameState.memory?.wins || 0;
+                        gameState.memory.earnings = savedData.gameState.memory?.earnings || 0;
+                        gameState.dice.wins = savedData.gameState.dice?.wins || 0;
+                        gameState.dice.earnings = savedData.gameState.dice?.earnings || 0;
+                        gameState.snake.score = savedData.gameState.snake?.score || 0;
+                        gameState.snake.earnings = savedData.gameState.snake?.earnings || 0;
+                        gameState.trivia.correct = savedData.gameState.trivia?.correct || 0;
+                        gameState.trivia.earnings = savedData.gameState.trivia?.earnings || 0;
+                        gameState.trivia.usedQuestions = savedData.gameState.trivia?.usedQuestions || [];
+                        gameState.wheel.wins = savedData.gameState.wheel?.wins || 0;
+                        gameState.wheel.earnings = savedData.gameState.wheel?.earnings || 0;
+                    }
+
+                    // Check if game timer is still active
+                    if (savedData.gameTimerStart) {
+                        const timeElapsed = now - savedData.gameTimerStart;
+                        if (timeElapsed < 55 * 60 * 1000) { // 55 minutes
+                            gameState.gameTimerStart = savedData.gameTimerStart;
+                            startGameTimer();
+                        } else {
+                            showAccessDenied("Your game session has expired. Please watch ads again.");
+                            return false;
+                        }
+                    }
+                } else if (fromConsole) {
+                    // If coming from console button but 55 minutes haven't passed, don't reset attempts
                     if (savedData?.gameState) {
                         gameState.memory.attempts = savedData.gameState.memory?.attempts || 10;
                         gameState.dice.attempts = savedData.gameState.dice?.attempts || 10;
