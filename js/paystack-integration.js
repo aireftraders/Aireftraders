@@ -104,3 +104,62 @@ window.PaystackIntegration = {
   initiatePayment,
   verifyPayment,
 }
+// Add to your paystack-integration.js file
+
+/**
+ * Request a withdrawal (adds to the queue)
+ * @param {string} accountNumber - User's account number
+ * @param {string} bankCode - Bank code
+ * @param {number} amount - Amount to withdraw
+ * @returns {Promise<Object>} - Withdrawal request response
+ */
+async function requestWithdrawal(accountNumber, bankCode, amount) {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/request-withdrawal`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        accountNumber,
+        bankCode,
+        amount,
+      }),
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error requesting withdrawal:", error);
+    return {
+      status: false,
+      message: "Failed to request withdrawal. Please try again later.",
+    };
+  }
+}
+
+/**
+ * Check withdrawal batch status
+ * @returns {Promise<Object>} - Batch status response
+ */
+async function checkBatchStatus() {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/batch-status`);
+    return await response.json();
+  } catch (error) {
+    console.error("Error checking batch status:", error);
+    return {
+      status: false,
+      message: "Failed to check batch status. Please try again later.",
+    };
+  }
+}
+
+// Add to the exported functions
+window.PaystackIntegration = {
+  verifyAccount,
+  fetchBanks,
+  initiatePayment,
+  verifyPayment,
+  requestWithdrawal,
+  checkBatchStatus,
+};

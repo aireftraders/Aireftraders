@@ -462,6 +462,22 @@
                 padding: 8px 5px;
             }
         }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -717,6 +733,14 @@
                     <input type="number" id="minWithdrawal" min="0">
                 </div>
                 <div class="admin-form-group">
+                    <label for="maxWithdrawal">Maximum Withdrawal (₦)</label>
+                    <input type="number" id="maxWithdrawal" min="0">
+                </div>
+                <div class="admin-form-group">
+                    <label for="processingFee">Processing Fee (₦)</label>
+                    <input type="number" id="processingFee" min="0">
+                </div>
+                <div class="admin-form-group">
                     <label for="userProfitPercent">User Profit Percentage</label>
                     <input type="number" id="userProfitPercent" min="1" max="100">
                 </div>
@@ -727,6 +751,11 @@
                 <div class="admin-form-group">
                     <label for="systemFeePercent">System Fee Percentage</label>
                     <input type="number" id="systemFeePercent" min="1" max="100">
+                </div>
+                <div class="admin-form-group">
+                    <label>
+                        <input type="checkbox" id="maintenanceMode"> Maintenance Mode
+                    </label>
                 </div>
                 <div class="action-bar">
                     <button class="primary" id="saveSettingsBtn">Save Settings</button>
@@ -867,6 +896,8 @@
     
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/otpauth@9.0.2/dist/otpauth.umd.min.js"></script>
+    <script src="js/batch-processing.js"></script>
+    <script src="js/admin-integration.js"></script>
     <script>
         // Initialize Dexie database (must match index.html)
         const db = new Dexie("AI_REF_TRADERS_DB");
@@ -1935,185 +1966,3 @@
                 }
                 
                 const isValid = totp.validate({ token: enteredCode, window: 1 }) !== null;
-                if (isValid) {
-                    completeAdminLogin(tempAdminData);
-                } else {
-                    showNotification('Invalid verification code. Please try again.');
-                }
-            } catch (error) {
-                console.error('Error verifying 2FA:', error);
-                showNotification('Error verifying 2FA. Please try again.');
-            }
-        }
-
-        // Complete admin login
-        function completeAdminLogin(admin) {
-            localStorage.setItem('adminLoggedIn', 'true');
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-            document.getElementById('adminUsernameDisplay').textContent = admin.username;
-            
-            // Clear login fields
-            document.getElementById('adminUsername').value = '';
-            document.getElementById('adminPassword').value = '';
-            document.getElementById('adminPasskey').value = '';
-            Array.from(document.querySelectorAll('.totp-input')).forEach(input => input.value = '');
-            
-            // Load admin panel data
-            loadAdminPanelData();
-        }
-
-        // Logout
-        function adminLogout() {
-            localStorage.removeItem('adminLoggedIn');
-            document.getElementById('loginContainer').style.display = 'block';
-            document.getElementById('adminPanel').style.display = 'none';
-            tempAdminData = null;
-            
-            // Reset to password step
-            document.getElementById('passwordStep').classList.add('active');
-            document.getElementById('totpStep').classList.remove('active');
-        }
-
-        // Back to password step from 2FA
-        function backToPasswordStep() {
-            document.getElementById('passwordStep').classList.add('active');
-            document.getElementById('totpStep').classList.remove('active');
-            tempAdminData = null;
-        }
-
-        // Auto-focus next TOTP input
-        function setupTOTPInputs() {
-            const inputs = document.querySelectorAll('.totp-input');
-            
-            inputs.forEach((input, index) => {
-                input.addEventListener('input', () => {
-                    if (input.value.length === 1 && index < inputs.length - 1) {
-                        inputs[index + 1].focus();
-                    }
-                });
-                
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Backspace' && input.value.length === 0 && index > 0) {
-                        inputs[index - 1].focus();
-                    }
-                });
-            });
-        }
-
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Initialize database
-            await initializeAdminPanel();
-            
-            // Check if already logged in
-            if (localStorage.getItem('adminLoggedIn') === 'true') {
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
-                await loadAdminPanelData();
-            }
-            
-            // Set up theme toggle
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            setTheme(savedTheme);
-            
-            document.getElementById('themeToggle').addEventListener('click', () => {
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                setTheme(newTheme);
-            });
-            
-            // Set up login form
-            document.getElementById('adminLoginBtn').addEventListener('click', adminLogin);
-            document.getElementById('verifyTotpBtn').addEventListener('click', verify2FACode);
-            document.getElementById('backToPasswordBtn').addEventListener('click', backToPasswordStep);
-            document.getElementById('logoutBtn').addEventListener('click', adminLogout);
-            
-            // Set up TOTP inputs
-            setupTOTPInputs();
-            
-            // Set up user management
-            document.getElementById('userSearch').addEventListener('input', loadUserManagementData);
-            document.getElementById('prevPageBtn').addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    loadUserManagementData();
-                }
-            });
-            document.getElementById('nextPageBtn').addEventListener('click', () => {
-                currentPage++;
-                loadUserManagementData();
-            });
-            document.getElementById('saveUserBtn').addEventListener('click', saveUserChanges);
-            document.getElementById('resetUserBtn').addEventListener('click', () => {
-                document.getElementById('editUserId').value = '';
-                document.getElementById('editUserBalance').value = '';
-                document.getElementById('editUserReferrals').value = '';
-                document.getElementById('editUserAds').value = '';
-                document.getElementById('editUserVerified').checked = false;
-                document.getElementById('editUserActive').checked = false;
-                currentSelectedUserId = null;
-            });
-            
-            // Set up payment control
-            document.getElementById('batchSize').addEventListener('change', async () => {
-                currentBatchSize = parseInt(document.getElementById('batchSize').value);
-                document.getElementById('batchSizeDisplay').textContent = currentBatchSize;
-                await saveSystemSettings();
-            });
-            document.getElementById('processBatchBtn').addEventListener('click', processCurrentBatch);
-            document.getElementById('forceProcessBtn').addEventListener('click', forceProcessBatch);
-            document.getElementById('notifyEligibleBtn').addEventListener('click', notifyEligibleUsers);
-            
-            // Set up system settings
-            document.getElementById('saveSettingsBtn').addEventListener('click', saveSystemSettings);
-            document.getElementById('resetSettingsBtn').addEventListener('click', resetSystemSettings);
-            document.getElementById('changeSecurityBtn').addEventListener('click', changeAdminPassword);
-            document.getElementById('confirm2FABtn').addEventListener('click', confirm2FASetup);
-            document.getElementById('enable2FA').addEventListener('change', function() {
-                if (this.checked) {
-                    document.getElementById('2FASetupSection').style.display = 'block';
-                } else {
-                    document.getElementById('2FASetupSection').style.display = 'none';
-                }
-            });
-            
-            // Set up announcements
-            document.getElementById('sendAnnouncementBtn').addEventListener('click', sendAnnouncement);
-            document.getElementById('previewAnnouncementBtn').addEventListener('click', previewAnnouncement);
-            document.getElementById('sendPreviewBtn').addEventListener('click', sendAnnouncement);
-            document.getElementById('editPreviewBtn').addEventListener('click', () => {
-                document.getElementById('previewModal').classList.remove('active');
-            });
-            
-            // Set up support
-            document.getElementById('sendReplyBtn').addEventListener('click', sendTicketReply);
-            document.getElementById('resolveTicketBtn').addEventListener('click', resolveTicket);
-            
-            // Tab switching
-            document.querySelectorAll('.admin-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    // Remove active class from all tabs
-                    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-                    // Add active class to clicked tab
-                    this.classList.add('active');
-                    
-                    // Hide all tab contents
-                    document.querySelectorAll('.admin-tab-content').forEach(content => {
-                        content.classList.remove('active');
-                    });
-                    
-                    // Show corresponding tab content
-                    const tabName = this.dataset.tab;
-                    document.getElementById(`${tabName}Tab`).classList.add('active');
-                });
-            });
-        });
-
-        // Make functions available globally for inline event handlers
-        window.editUser = editUser;
-        window.processWithdrawal = processWithdrawal;
-        window.viewTicket = viewTicket;
-    </script>
-</body>
-</html>
