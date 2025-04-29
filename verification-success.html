@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Successful - AI REF-TRADERS</title>
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --secondary: #00CEFF;
+            --dark: #2D3436;
+            --light: #F5F6FA;
+            --success: #00B894;
+            --danger: #D63031;
+            --warning: #FDCB6E;
+            --nigerian-green: #008753;
+            --nigerian-white: #FFFFFF;
+            --nigerian-green-light: #E5F5EE;
+            
+            /* Theme variables */
+            --bg-color: #F5F6FA;
+            --text-color: #2D3436;
+            --card-bg: #FFFFFF;
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0,0,0,0.1);
+        }
+        
+        /* Dark theme variables */
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #E0E0E0;
+            --card-bg: #1E1E1E;
+            --border-color: #333333;
+            --shadow-color: rgba(0,0,0,0.3);
+            --dark: #E0E0E0;
+            --light: #121212;
+            --nigerian-green-light: #1E3D31;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: var(--success);
+        }
+        
+        .error-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: var(--danger);
+        }
+        
+        h1 {
+            margin: 0 0 20px 0;
+            color: var(--primary);
+        }
+        
+        p {
+            margin: 0 0 20px 0;
+            line-height: 1.6;
+        }
+        
+        .details {
+            background: var(--nigerian-green-light);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .details p {
+            margin: 5px 0;
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background: var(--secondary);
+        }
+        
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <script src="js/paystack-integration.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="card" id="loadingCard">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Verifying your payment...</p>
+            </div>
+        </div>
+        
+        <div class="card" id="successCard" style="display: none;">
+            <div class="success-icon">✅</div>
+            <h1>Verification Successful!</h1>
+            <p>Your bank account has been successfully verified and bound to your AI REF-TRADERS account.</p>
+            
+            <div class="details" id="accountDetails">
+                <!-- Account details will be inserted here -->
+            </div>
+            
+            <p>₦500 has been added to your withdrawable balance.</p>
+            <button id="returnToApp">Return to App</button>
+        </div>
+        
+        <div class="card" id="errorCard" style="display: none;">
+            <div class="error-icon">❌</div>
+            <h1>Verification Failed</h1>
+            <p id="errorMessage">We couldn't verify your payment. Please try again or contact support.</p>
+            <button id="tryAgain">Try Again</button>
+        </div>
+    </div>
+    
+    <script>
+        // Apply theme from localStorage
+        function applyTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const themeToApply = savedTheme || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', themeToApply);
+        }
+        
+        // Apply theme on page load
+        applyTheme();
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Get reference from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const reference = urlParams.get('reference');
+            
+            if (!reference) {
+                showError('No payment reference found. Please try again.');
+                return;
+            }
+            
+            try {
+                // Verify payment with backend
+                const result = await window.PaystackIntegration.verifyPayment(reference);
+                
+                if (result.status) {
+                    // Payment verified successfully
+                    const accountDetails = document.getElementById('accountDetails');
+                    accountDetails.innerHTML = `
+                        <p><strong>Account Name:</strong> ${result.data.accountName}</p>
+                        <p><strong>Account Number:</strong> ${result.data.accountNumber}</p>
+                        <p><strong>Verified On:</strong> ${new Date(result.data.verifiedAt).toLocaleString()}</p>
+                    `;
+                    
+                    // Store verification status in localStorage
+                    localStorage.setItem('accountVerified', 'true');
+                    localStorage.setItem('accountDetails', JSON.stringify({
+                        accountName: result.data.accountName,
+                        accountNumber: result.data.accountNumber,
+                        verifiedAt: result.data.verifiedAt
+                    }));
+                    
+                    // Show success card
+                    document.getElementById('loadingCard').style.display = 'none';
+                    document.getElementById('successCard').style.display = 'block';
+                } else {
+                    // Payment verification failed
+                    showError(result.message || 'Payment verification failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error verifying payment:', error);
+                showError('An error occurred while verifying your payment. Please try again.');
+            }
+        });
+        
+        function showError(message) {
+            document.getElementById('loadingCard').style.display = 'none';
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorCard').style.display = 'block';
+        }
+        
+        // Return to app button
+        document.getElementById('returnToApp').addEventListener('click', function() {
+            window.location.href = 'index.html';
+        });
+        
+        // Try again button
+        document.getElementById('tryAgain').addEventListener('click', function() {
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
