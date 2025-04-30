@@ -3292,6 +3292,86 @@
         setTimeout(() => {
             window.postMessage({ type: 'adminNotification', message: 'Check out the latest updates!' }, '*');
         }, 5000);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if Telegram WebApp is available
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+
+                // Check if we have initData
+                if (tg.initData) {
+                    // Verify with backend
+                    TelegramAuth.verifyUser(tg.initData)
+                        .then(response => {
+                            if (response.success) {
+                                console.log('User authenticated:', response.user);
+                                // Redirect to dashboard if authenticated
+                                if (window.location.pathname.includes('splash-screen.html')) {
+                                    window.location.href = 'index.html';
+                                }
+                            } else {
+                                console.error('Authentication failed:', response.message);
+                                // Redirect to splash screen if not authenticated
+                                if (!window.location.pathname.includes('splash-screen.html')) {
+                                    window.location.href = 'splash-screen.html';
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error during authentication check:', error);
+                            // Redirect to splash screen on error
+                            if (!window.location.pathname.includes('splash-screen.html')) {
+                                window.location.href = 'splash-screen.html';
+                            }
+                        });
+                } else {
+                    console.log('No initData available, user needs to authenticate');
+                    // Redirect to splash screen if no initData
+                    if (!window.location.pathname.includes('splash-screen.html')) {
+                        window.location.href = 'splash-screen.html';
+                    }
+                }
+            } else {
+                console.log('Telegram WebApp not available');
+                // Handle non-Telegram environment
+                if (!window.location.pathname.includes('splash-screen.html')) {
+                    window.location.href = 'splash-screen.html';
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if Telegram WebApp is available
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+
+                // Check if we have initData
+                if (tg.initData) {
+                    // Verify with backend
+                    TelegramAuth.verifyUser(tg.initData)
+                        .then(response => {
+                            if (!response.success) {
+                                console.error('Authentication failed:', response.message);
+                                // Redirect to splash screen if not authenticated
+                                window.location.href = 'splash-screen.html';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error during authentication check:', error);
+                            // Redirect to splash screen on error
+                            window.location.href = 'splash-screen.html';
+                        });
+                } else {
+                    console.log('No initData available, user needs to authenticate');
+                    // Redirect to splash screen if no initData
+                    window.location.href = 'splash-screen.html';
+                }
+            } else {
+                console.log('Telegram WebApp not available');
+                // Redirect to splash screen if Telegram WebApp is not available
+                window.location.href = 'splash-screen.html';
+            }
+        });
     </script>
     <script src="js/paystack-integration.js"></script>
     <script src="js/batch-processing.js"></script>
@@ -3428,6 +3508,40 @@
             } else {
                 console.log('Telegram WebApp not available');
                 // Handle non-Telegram environment
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if Telegram WebApp is available
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+
+                // Check if we have initData
+                if (tg.initData) {
+                    // Verify with backend
+                    TelegramAuth.verifyUser(tg.initData)
+                        .then(response => {
+                            if (!response.success) {
+                                console.error('Authentication failed:', response.message);
+                                // Redirect to splash screen if not authenticated
+                                window.location.href = 'splash-screen.html';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error during authentication check:', error);
+                            // Redirect to splash screen on error
+                            window.location.href = 'splash-screen.html';
+                        });
+                } else {
+                    console.log('No initData available, user needs to authenticate');
+                    // Redirect to splash screen if no initData
+                    window.location.href = 'splash-screen.html';
+                }
+            } else {
+                console.log('Telegram WebApp not available');
+                // Redirect to splash screen if Telegram WebApp is not available
+                window.location.href = 'splash-screen.html';
             }
         });
     </script>
