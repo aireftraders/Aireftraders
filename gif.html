@@ -36,13 +36,22 @@
             color: white;
             border: none;
             cursor: pointer;
+            margin-right: 10px;
         }
         button:disabled {
             background: #cccccc;
+            cursor: not-allowed;
         }
         #progress {
             margin-top: 10px;
             display: none;
+        }
+        .format-options {
+            margin: 15px 0;
+        }
+        .format-option {
+            display: inline-block;
+            margin-right: 15px;
         }
     </style>
 </head>
@@ -57,18 +66,27 @@
     </div>
     
     <div class="controls">
-        <div>
-            <label>Output Format:</label>
-            <select id="outputFormat">
-                <option value="gif">GIF</option>
-                <option value="mp4">MP4</option>
-                <option value="webm">WebM</option>
-            </select>
+        <div class="format-options">
+            <strong>Output Format:</strong>
+            <div class="format-option">
+                <input type="radio" id="formatGif" name="format" value="gif" checked>
+                <label for="formatGif">GIF</label>
+            </div>
+            <div class="format-option">
+                <input type="radio" id="formatMp4" name="format" value="mp4">
+                <label for="formatMp4">MP4</label>
+            </div>
+            <div class="format-option">
+                <input type="radio" id="formatWebm" name="format" value="webm">
+                <label for="formatWebm">WebM</label>
+            </div>
         </div>
+        
         <div>
             <label>Width: <input type="number" id="width" placeholder="auto"></label>
             <label>Height: <input type="number" id="height" placeholder="auto"></label>
         </div>
+        
         <div>
             <label>Quality: 
                 <select id="quality">
@@ -108,11 +126,11 @@
             const convertedImage = document.getElementById('convertedImage');
             const convertBtn = document.getElementById('convertBtn');
             const downloadBtn = document.getElementById('downloadBtn');
-            const outputFormat = document.getElementById('outputFormat');
             const widthInput = document.getElementById('width');
             const heightInput = document.getElementById('height');
             const qualityInput = document.getElementById('quality');
             const progress = document.getElementById('progress');
+            const formatRadios = document.getElementsByName('format');
             
             let originalFile = null;
             let convertedBlob = null;
@@ -120,9 +138,16 @@
 
             // File selection
             uploadArea.addEventListener('click', () => fileInput.click());
-            uploadArea.addEventListener('dragover', (e) => e.preventDefault());
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.backgroundColor = '#f0f8ff';
+            });
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.backgroundColor = '';
+            });
             uploadArea.addEventListener('drop', (e) => {
                 e.preventDefault();
+                uploadArea.style.backgroundColor = '';
                 if (e.dataTransfer.files.length) {
                     fileInput.files = e.dataTransfer.files;
                     handleFileSelect(e.dataTransfer.files[0]);
@@ -149,15 +174,15 @@
                     originalVideo.src = url;
                     originalVideo.style.display = 'block';
                     originalVideo.onloadedmetadata = () => {
-                        widthInput.placeholder = originalVideo.videoWidth;
-                        heightInput.placeholder = originalVideo.videoHeight;
+                        if (!widthInput.value) widthInput.placeholder = originalVideo.videoWidth;
+                        if (!heightInput.value) heightInput.placeholder = originalVideo.videoHeight;
                     };
                 } else {
                     originalImage.src = url;
                     originalImage.style.display = 'block';
                     originalImage.onload = () => {
-                        widthInput.placeholder = originalImage.naturalWidth;
-                        heightInput.placeholder = originalImage.naturalHeight;
+                        if (!widthInput.value) widthInput.placeholder = originalImage.naturalWidth;
+                        if (!heightInput.value) heightInput.placeholder = originalImage.naturalHeight;
                     };
                 }
                 
@@ -168,37 +193,40 @@
             convertBtn.addEventListener('click', async () => {
                 if (!originalFile) return;
                 
-                const format = outputFormat.value;
+                const format = document.querySelector('input[name="format"]:checked').value;
                 const width = widthInput.value || (isVideo ? originalVideo.videoWidth : originalImage.naturalWidth);
                 const height = heightInput.value || (isVideo ? originalVideo.videoHeight : originalImage.naturalHeight);
                 const quality = qualityInput.value;
                 
                 progress.style.display = 'block';
                 convertBtn.disabled = true;
+                downloadBtn.disabled = true;
                 
                 try {
                     if (format === 'gif') {
                         convertedBlob = await convertToGif(width, height, quality);
                         convertedImage.src = URL.createObjectURL(convertedBlob);
                         convertedImage.style.display = 'block';
+                        convertedVideo.style.display = 'none';
                     } else {
                         convertedBlob = await convertToVideo(format, width, height, quality);
                         convertedVideo.src = URL.createObjectURL(convertedBlob);
                         convertedVideo.style.display = 'block';
+                        convertedImage.style.display = 'none';
                     }
                     
                     downloadBtn.disabled = false;
+                    progress.style.display = 'none';
                 } catch (error) {
                     alert('Conversion failed: ' + error.message);
+                    progress.style.display = 'none';
+                    convertBtn.disabled = false;
                 }
-                
-                progress.style.display = 'none';
-                convertBtn.disabled = false;
             });
 
             async function convertToGif(width, height, quality) {
                 // Load gif.js dynamically
-                const gifjs = await loadScript('https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js');
+                await loadScript('https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js');
                 
                 return new Promise((resolve) => {
                     const gif = new GIF({
@@ -220,23 +248,27 @@
                         const fps = 10; // Target FPS
                         const interval = 1 / fps;
                         let currentTime = 0;
+                        let framesProcessed = 0;
+                        const totalFrames = Math.min(30, Math.floor(duration * fps)); // Limit to 30 frames max
                         
                         function captureFrame() {
-                            if (currentTime >= duration) {
+                            if (currentTime >= duration || framesProcessed >= totalFrames) {
                                 gif.render();
                                 return;
                             }
                             
                             originalVideo.currentTime = currentTime;
                             currentTime += interval;
-                            
-                            const progress = (currentTime / duration) * 100;
-                            progress.querySelector('progress').value = progress;
                         }
                         
                         originalVideo.addEventListener('seeked', function() {
                             ctx.drawImage(originalVideo, 0, 0, width, height);
                             gif.addFrame(canvas, {delay: interval * 1000, copy: true});
+                            
+                            framesProcessed++;
+                            const progress = Math.round((framesProcessed / totalFrames) * 100);
+                            progress.querySelector('progress').value = progress;
+                            
                             captureFrame();
                         });
                         
@@ -257,6 +289,8 @@
                             ctx.drawImage(img, 0, 0, width, height);
                             gif.addFrame(canvas, {delay: 100});
                             gif.render();
+                            
+                            progress.querySelector('progress').value = 100;
                         };
                         
                         gif.on('finished', function(blob) {
@@ -267,60 +301,53 @@
             }
 
             async function convertToVideo(format, width, height, quality) {
-                if (!isVideo && format !== 'gif') {
-                    // Convert image to video
-                    const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                
+                let stream;
+                
+                if (isVideo) {
+                    // For video input
+                    stream = canvas.captureStream();
                     
-                    const img = new Image();
-                    img.src = originalImage.src;
-                    await new Promise((resolve) => { img.onload = resolve; });
-                    ctx.drawImage(img, 0, 0, width, height);
+                    originalVideo.currentTime = 0;
+                    const duration = Math.min(originalVideo.duration, 10); // Limit to 10 seconds max
+                    const fps = 25;
+                    const interval = 1 / fps;
+                    let currentTime = 0;
+                    let framesProcessed = 0;
+                    const totalFrames = Math.floor(duration * fps);
                     
-                    const stream = canvas.captureStream();
-                    return await recordStream(stream, format, quality);
-                } else {
-                    // Convert video to different format
-                    const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    
-                    const stream = canvas.captureStream();
+                    const chunks = [];
                     const recorder = new MediaRecorder(stream, {
                         mimeType: format === 'mp4' ? 'video/mp4' : 'video/webm',
                         videoBitsPerSecond: 1000000 * quality
                     });
                     
-                    originalVideo.currentTime = 0;
-                    const duration = originalVideo.duration;
-                    const fps = 25;
-                    const interval = 1 / fps;
-                    let currentTime = 0;
-                    
-                    const chunks = [];
                     recorder.ondataavailable = (e) => chunks.push(e.data);
                     
                     return new Promise((resolve) => {
-                        recorder.start(100);
+                        recorder.start(100); // Collect data every 100ms
                         
                         function captureFrame() {
-                            if (currentTime >= duration) {
+                            if (currentTime >= duration || framesProcessed >= totalFrames) {
                                 recorder.stop();
                                 return;
                             }
                             
                             originalVideo.currentTime = currentTime;
                             currentTime += interval;
-                            
-                            const progress = (currentTime / duration) * 100;
-                            progress.querySelector('progress').value = progress;
                         }
                         
                         originalVideo.addEventListener('seeked', function() {
                             ctx.drawImage(originalVideo, 0, 0, width, height);
+                            framesProcessed++;
+                            
+                            const progress = Math.round((framesProcessed / totalFrames) * 100);
+                            progress.querySelector('progress').value = progress;
+                            
                             captureFrame();
                         });
                         
@@ -330,6 +357,16 @@
                         
                         captureFrame();
                     });
+                } else {
+                    // For image input
+                    const img = new Image();
+                    img.src = originalImage.src;
+                    await new Promise((resolve) => { img.onload = resolve; });
+                    
+                    ctx.drawImage(img, 0, 0, width, height);
+                    stream = canvas.captureStream();
+                    
+                    return await recordStream(stream, format, quality);
                 }
             }
 
@@ -347,7 +384,10 @@
                     };
                     
                     recorder.start();
-                    setTimeout(() => recorder.stop(), 1000); // 1 second video for images
+                    setTimeout(() => {
+                        progress.querySelector('progress').value = 100;
+                        recorder.stop();
+                    }, 1000); // 1 second video for images
                 });
             }
 
@@ -355,7 +395,8 @@
             downloadBtn.addEventListener('click', () => {
                 if (!convertedBlob) return;
                 
-                const ext = outputFormat.value;
+                const format = document.querySelector('input[name="format"]:checked').value;
+                const ext = format === 'mp4' ? 'mp4' : format === 'webm' ? 'webm' : 'gif';
                 const filename = originalFile.name.replace(/\.[^/.]+$/, '') + '_converted.' + ext;
                 
                 const a = document.createElement('a');
@@ -367,7 +408,7 @@
             // Helper function to load scripts
             function loadScript(url) {
                 return new Promise((resolve, reject) => {
-                    if (document.querySelector(`script[src="${url}"]`)) {
+                    if (window.GIF) {
                         resolve();
                         return;
                     }
