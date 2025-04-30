@@ -1066,365 +1066,295 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-
-        /* Splash Screen Styles */
-        .splash-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            text-align: center;
-        }
-
-        .logo-container {
-            margin-bottom: 30px;
-            animation: fadeIn 1s ease-in-out;
-        }
-
-        .logo {
-            width: 200px;
-            height: auto;
-            margin: 0 auto;
-            display: block;
-        }
-
-        .app-title {
-            font-size: 28px;
-            font-weight: bold;
-            margin: 20px 0 10px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: transparent; /* Fallback */
-        }
-
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 20px;
-        }
-
-        .loading-bar {
-            width: 80%;
-            height: 6px;
-            background-color: #eee;
-            border-radius: 3px;
-            overflow: hidden;
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        .loading-progress {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            border-radius: 3px;
-            animation: loading 3s ease-in-out forwards;
-        }
-
-        .loading-text {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .main-content {
-            display: none;
-        }
-
-        .main-content.active {
-            display: block;
-        }
     </style>
 </head>
 <body>
-    <!-- Splash Screen -->
-    <div class="splash-container" id="splashScreen">
-        <div class="logo-container">
-            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2030%2C%202025%2C%2002_36_32%20AM-1wDDnne5fpylqjmbzveVpRiAKxNNkS.png" alt="AI REF-TRADERS Logo" class="logo">
-            <h1 class="app-title">AI REF-TRADERS</h1>
-            <p class="app-subtitle">Nigeria's #1 AI Trading & Referral Platform</p>
-        </div>
-        <div class="loading-container">
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
-            </div>
-            <p class="loading-text">Loading application...</p>
-        </div>
+    <!-- Theme Toggle Button -->
+    <div class="theme-toggle">
+        <button class="theme-toggle-btn" id="themeToggle">
+            <span class="theme-icon" id="themeIcon">🌙</span>
+            <span id="themeText">Dark Mode</span>
+        </button>
     </div>
 
-    <!-- Main Content -->
-    <div id="mainContent" style="display: none;">
-        <div class="theme-toggle">
-            <button class="theme-toggle-btn" id="themeToggle">
-                <span class="theme-icon" id="themeIcon">🌙</span>
-                <span id="themeText">Dark Mode</span>
-            </button>
-        </div>
+    <!-- Language Selector -->
+    <div class="language-selector" id="languageSelector">
+        🌐 <select id="languageDropdown">
+            <option value="en" selected>EN</option>
+            <option value="ha">HA</option>
+            <option value="yo">YO</option>
+            <option value="ig">IG</option>
+        </select>
+    </div>
 
-        <!-- Language Selector -->
-        <div class="language-selector" id="languageSelector">
-            🌐 <select id="languageDropdown">
-                <option value="en" selected>EN</option>
-                <option value="ha">HA</option>
-                <option value="yo">YO</option>
-                <option value="ig">IG</option>
-            </select>
-        </div>
+    <!-- Notification Bell -->
+    <div class="notification-bell" id="notificationBell">
+        🔔
+        <div class="red-dot" id="redDot"></div>
+    </div>
 
-        <!-- Notification Bell -->
-        <div class="notification-bell" id="notificationBell">
-            🔔
-            <div class="red-dot" id="redDot"></div>
+    <div class="container">
+        <div class="app-bar">
+            <h1>AI REF-TRADERS <span class="nigeria-badge">100% NIGERIAN</span></h1>
+            <div class="user-chip">
+                <span>📊 ₦<span id="balanceDisplay">5000</span></span>
+                <span id="verifiedBadge">❌</span>
+            </div>
         </div>
-
-        <div class="container">
-            <div class="app-bar">
-                <h1>AI REF-TRADERS <span class="nigeria-badge">100% NIGERIAN</span></h1>
-                <div class="user-chip">
-                    <span>📊 ₦<span id="balanceDisplay">5000</span></span>
-                    <span id="verifiedBadge">❌</span>
-                </div>
+        
+        <div class="nigerian-cta">
+            <h3>🇳🇬 Designed for Nigerians</h3>
+            <p>Our platform works perfectly with all Nigerian banks and mobile money services. Get paid directly to your Nigerian account.</p>
+        </div>
+        
+        <!-- Nigerian Payment Methods -->
+        <div class="payment-methods">
+            <div class="payment-method">
+                <span>🏦</span> GTBank
             </div>
-            
-            <div class="nigerian-cta">
-                <h3>🇳🇬 Designed for Nigerians</h3>
-                <p>Our platform works perfectly with all Nigerian banks and mobile money services. Get paid directly to your Nigerian account.</p>
+            <div class="payment-method">
+                <span>🏦</span> Zenith
             </div>
-            
-            <!-- Nigerian Payment Methods -->
-            <div class="payment-methods">
-                <div class="payment-method">
-                    <span>🏦</span> GTBank
-                </div>
-                <div class="payment-method">
-                    <span>🏦</span> Zenith
-                </div>
-                <div class="payment-method">
-                    <span>🏦</span> First Bank
-                </div>
-                <div class="payment-method">
-                    <span>🏦</span> UBA
-                </div>
-                <div class="payment-method">
-                    <span>🏦</span> Access
-                </div>
-                <div class="payment-method">
-                    <span>🏦</span> FCMB
-                </div>
-                <div class="payment-method">
-                    <span>🏦</span> Stanbic
-                </div>
-                <div class="payment-method">
-                    <span>🏦</span> Union
-                </div>
-                <div class="payment-method">
-                    <span>📱</span> Opay
-                </div>
-                <div class="payment-method">
-                    <span>📱</span> Palmpay
-                </div>
-                <div class="payment-method">
-                    <span>📱</span> Kuda
-                </div>
-                <div class="payment-method">
-                    <span>📱</span> Moniepoint
-                </div>
+            <div class="payment-method">
+                <span>🏦</span> First Bank
             </div>
-            
-            <!-- Tab Bar -->
-            <div class="tab-bar">
-                <div class="tab active" data-tab="dashboard">Dashboard</div>
-                <div class="tab" data-tab="trading">AI Trading</div>
-                <div class="tab" data-tab="games">Games</div>
-                <div class="tab" data-tab="info">Info</div>
-                <div class="tab" data-tab="support">Support</div>
+            <div class="payment-method">
+                <span>🏦</span> UBA
             </div>
-            
-            <!-- Dashboard Tab -->
-            <div id="dashboardTab" class="tab-content active">
-                <div class="card-grid">
-                    <div class="status-card accent">
-                        <h3>🚀 Trading Status</h3>
-                        <p id="tradingStatus">AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)</p>
-                        <progress id="referralProgress" value="0" max="6"></progress>
-                        <small><span id="completedReferrals">0</span>/6 Referrals</small>
-                        
-                        <!-- NEW: Ads Watched Progress Bar -->
-                        <div class="ads-progress-container">
-                            <div class="ads-progress-label">
-                                <span>Ads Watched: <span id="adsWatchedCount">0</span>/20</span>
-                                <span>Total: <span id="totalAdsWatched">0</span></span>
-                            </div>
-                            <progress id="adsProgress" value="0" max="20"></progress>
-                        </div>
-                    </div>
+            <div class="payment-method">
+                <span>🏦</span> Access
+            </div>
+            <div class="payment-method">
+                <span>🏦</span> FCMB
+            </div>
+            <div class="payment-method">
+                <span>🏦</span> Stanbic
+            </div>
+            <div class="payment-method">
+                <span>🏦</span> Union
+            </div>
+            <div class="payment-method">
+                <span>📱</span> Opay
+            </div>
+            <div class="payment-method">
+                <span>📱</span> Palmpay
+            </div>
+            <div class="payment-method">
+                <span>📱</span> Kuda
+            </div>
+            <div class="payment-method">
+                <span>📱</span> Moniepoint
+            </div>
+        </div>
+        
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <div class="tab active" data-tab="dashboard">Dashboard</div>
+            <div class="tab" data-tab="trading">AI Trading</div>
+            <div class="tab" data-tab="games">Games</div>
+            <div class="tab" data-tab="info">Info</div>
+            <div class="tab" data-tab="support">Support</div>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div id="dashboardTab" class="tab-content active">
+            <div class="card-grid">
+                <div class="status-card accent">
+                    <h3>🚀 Trading Status</h3>
+                    <p id="tradingStatus">AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)</p>
+                    <progress id="referralProgress" value="0" max="6"></progress>
+                    <small><span id="completedReferrals">0</span>/6 Referrals</small>
                     
-                    <div class="status-card">
-                        <h3>👥 Referral Program</h3>
-                        <p><b><span id="currentReferrals">0</span>/6</b> (₦<span id="referralEarnings">0</span>/₦30,000)</p>
-                        
-                        <!-- Updated Referral Link Section with Dropdown -->
-                        <div class="referral-dropdown" id="referralDropdown">
-                            <button id="copyLink" class="primary" style="width: 100%;">🔗 Copy Referral Link</button>
-                            <div class="referral-dropdown-content">
-                                <div class="social-share-icons">
-                                    <div class="social-share-icon whatsapp" id="shareWhatsApp">📱</div>
-                                    <div class="social-share-icon facebook" id="shareFacebook">📘</div>
-                                    <div class="social-share-icon twitter" id="shareTwitter">🐦</div>
-                                    <div class="social-share-icon telegram" id="shareTelegram">✈️</div>
-                                    <div class="social-share-icon instagram" id="shareInstagram">📷</div>
-                                </div>
+                    <!-- NEW: Ads Watched Progress Bar -->
+                    <div class="ads-progress-container">
+                        <div class="ads-progress-label">
+                            <span>Ads Watched: <span id="adsWatchedCount">0</span>/20</span>
+                            <span>Total: <span id="totalAdsWatched">0</span></span>
+                        </div>
+                        <progress id="adsProgress" value="0" max="20"></progress>
+                    </div>
+                </div>
+                
+                <div class="status-card">
+                    <h3>👥 Referral Program</h3>
+                    <p><b><span id="currentReferrals">0</span>/6</b> (₦<span id="referralEarnings">0</span>/₦30,000)</p>
+                    
+                    <!-- Updated Referral Link Section with Dropdown -->
+                    <div class="referral-dropdown" id="referralDropdown">
+                        <button id="copyLink" class="primary" style="width: 100%;">🔗 Copy Referral Link</button>
+                        <div class="referral-dropdown-content">
+                            <div class="social-share-icons">
+                                <div class="social-share-icon whatsapp" id="shareWhatsApp">📱</div>
+                                <div class="social-share-icon facebook" id="shareFacebook">📘</div>
+                                <div class="social-share-icon twitter" id="shareTwitter">🐦</div>
+                                <div class="social-share-icon telegram" id="shareTelegram">✈️</div>
+                                <div class="social-share-icon instagram" id="shareInstagram">📷</div>
                             </div>
                         </div>
-                        
-                        <!-- Dynamic Referral Text Rotator -->
-                        <div class="referral-text-rotator" id="referralTextRotator">
-                            Earn ₦5,000 for each friend who signs up and watches 20 ads!
-                        </div>
-                        
-                        <!-- Referral Promo Banner -->
-                        <div class="referral-promo-banner" id="referralPromoBanner">
-                            <h3>🔥 LIMITED TIME OFFER</h3>
-                            <p>Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY!</p>
-                        </div>
                     </div>
-                </div>
-                
-                <!-- Login Streak -->
-                <div class="streak-container" id="streakContainer">
-                    <h3>🔥 Daily Login Streak</h3>
-                    <div class="streak-days">
-                        <span id="streakCount">0</span> days - ₦<span id="streakBonus">0</span> bonus
-                    </div>
-                    <p>Login daily to earn increasing bonuses (resets if you miss a day)</p>
                     
-                    <div class="streak-calendar" id="streakCalendar">
-                        <!-- Will be populated by JavaScript -->
+                    <!-- Dynamic Referral Text Rotator -->
+                    <div class="referral-text-rotator" id="referralTextRotator">
+                        Earn ₦5,000 for each friend who signs up and watches 20 ads!
                     </div>
-                </div>
-                
-                <div class="status-card">
-                    <h3>📊 Profit Distribution</h3>
-                    <div class="profit-chart">
-                        <div class="chart-bar user" style="width: 70%;">You (70%)</div>
-                        <div class="chart-bar company" style="width: 25%;">Company (25%)</div>
-                        <div class="chart-bar system" style="width: 5%;">System (5%)</div>
-                    </div>
-                    <p>70% of all profits go directly to you</p>
-                </div>
-                
-                <div class="status-card">
-                    <h3>💰 Payment Circle</h3>
-                    <p>Batch: <span id="paidUsers">0</span>/1,000 users</p>
-                    <progress id="paymentCircleProgress" value="0" max="1000"></progress>
-                    <small>Next payment batch at 1,000 users</small>
-                </div>
-                
-                <!-- Announcement Section -->
-                <div class="status-card" id="announcementSection">
-                    <h3>📢 Latest Announcements <span class="badge" id="newAnnouncementBadge" style="display: none;">NEW</span></h3>
-                    <div id="announcementList">
-                        <!-- Announcements will be loaded here -->
-                        <div class="announcement-item unread" data-id="1">
-                            <h4>🚨 URGENT BONUS OFFER <span class="badge">NEW</span></h4>
-                            <p>Refer 6 users that sign up and watch 20 ads within 24 hours and receive additional ₦20,000 to your trading capital!</p>
-                            <div class="announcement-time">Just now</div>
-                        </div>
-                        <div class="announcement-item" data-id="2">
-                            <h4>📢 System Maintenance</h4>
-                            <p>We'll be performing scheduled maintenance tomorrow from 2:00 AM to 4:00 AM. The platform will be temporarily unavailable during this time.</p>
-                            <div class="announcement-time">2 hours ago</div>
-                        </div>
-                    </div>
-                    <button id="viewAllAnnouncementsBtn" class="secondary">View All</button>
-                </div>
-            </div>
-            
-            <!-- AI Trading Tab - Changed to direct to trading.html -->
-            <div id="tradingTab" class="tab-content">
-                <div class="status-card">
-                    <h3>🤖 AI Trading</h3>
-                    <p>Click the button below to access AI Trading</p>
-                    <button class="primary" id="tradingButton">Start AI Trading</button>
-                </div>
-            </div>
-            
-            <!-- Games Tab - Changed to check ads status -->
-            <div id="gamesTab" class="tab-content">
-                <div class="status-card">
-                    <h3>🎮 Games</h3>
-                    <p>Click the button below to access games</p>
-                    <button class="primary" id="gamesButton">Play Games</button>
-                </div>
-            </div>
-            
-            <!-- Info Tab -->
-            <div id="infoTab" class="tab-content">
-                <div class="info-section">
-                    <h3>📚 How It Works</h3>
-                    <p>1. Complete 6 referrals and watch 20 ads to activate AI trading</p>
-                    <p>2. Earn ₦5,000 per referral (first 6 referrals = ₦30,000 capital)</p>
-                    <p>3. Play games to earn additional capital (₦800 per win)</p>
-                    <p>4. AI trading generates daily profits (20-50% of capital)</p>
-                    <p>5. Withdraw profits (minimum ₦5,000) after verification</p>
-                    <p>6. Verify your bank account with ₦1,050 one-time fee to withdraw</p>
-                    <p>7. Payments are processed in batches when 1,000 users reach threshold</p>
-                    <p>8. Maintain a login streak for daily bonuses (₦500 per day)</p>
-                    <p>9. 70% of profits go to you, 25% to company, 5% system fee</p>
-                    <p>10. Support available 24/7 for any questions or issues</p>
-                </div>
-                
-                <div class="info-section">
-                    <h3>💰 Cost Structure & Verification Fees</h3>
-                    <p>Your current model charges ₦1,050 for bank verification. Here's how this covers initial costs:</p>
                     
-                    <table class="cost-table">
-                        <thead>
-                            <tr>
-                                <th>Cost Component</th>
-                                <th>Estimated Cost (₦)</th>
-                                <th>Covered by Verification Fee?</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>KYC Verification</td>
-                                <td>150</td>
-                                <td class="checkmark">✅ Yes</td>
-                            </tr>
-                            <tr>
-                                <td>Bank API Integration</td>
-                                <td>150</td>
-                                <td class="checkmark">✅ Yes</td>
-                            </tr>
-                            <tr>
-                                <td>Fraud Prevention</td>
-                                <td>100</td>
-                                <td class="checkmark">✅ Yes</td>
-                            </tr>
-                            <tr>
-                                <td>Customer Support</td>
-                                <td>100</td>
-                                <td class="checkmark">✅ Yes</td>
-                            </tr>
-                            <tr>
-                                <td>Transaction Fees</td>
-                                <td>50</td>
-                                <td class="checkmark">✅ Yes</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Total Operational Cost</strong></td>
-                                <td><strong>₦550</strong></td>
+                    <!-- Referral Promo Banner -->
+                    <div class="referral-promo-banner" id="referralPromoBanner">
+                        <h3>🔥 LIMITED TIME OFFER</h3>
+                        <p>Refer 6 friends NOW to unlock FREE AI Trading and start earning ₦7,000-₦17,500 DAILY!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Login Streak -->
+            <div class="streak-container" id="streakContainer">
+                <h3>🔥 Daily Login Streak</h3>
+                <div class="streak-days">
+                    <span id="streakCount">0</span> days - ₦<span id="streakBonus">0</span> bonus
+                </div>
+                <p>Login daily to earn increasing bonuses (resets if you miss a day)</p>
+                
+                <div class="streak-calendar" id="streakCalendar">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="status-card">
+                <h3>📊 Profit Distribution</h3>
+                <div class="profit-chart">
+                    <div class="chart-bar user" style="width: 70%;">You (70%)</div>
+                    <div class="chart-bar company" style="width: 25%;">Company (25%)</div>
+                    <div class="chart-bar system" style="width: 5%;">System (5%)</div>
+                </div>
+                <p>70% of all profits go directly to you</p>
+            </div>
+            
+            <div class="status-card">
+                <h3>💰 Payment Circle</h3>
+                <p>Batch: <span id="paidUsers">0</span>/1,000 users</p>
+                <progress id="paymentCircleProgress" value="0" max="1000"></progress>
+                <small>Next payment batch at 1,000 users</small>
+            </div>
+            
+            <!-- Announcement Section -->
+            <div class="status-card" id="announcementSection">
+                <h3>📢 Latest Announcements <span class="badge" id="newAnnouncementBadge" style="display: none;">NEW</span></h3>
+                <div id="announcementList">
+                    <!-- Announcements will be loaded here -->
+                    <div class="announcement-item unread" data-id="1">
+                        <h4>🚨 URGENT BONUS OFFER <span class="badge">NEW</span></h4>
+                        <p>Refer 6 users that sign up and watch 20 ads within 24 hours and receive additional ₦20,000 to your trading capital!</p>
+                        <div class="announcement-time">Just now</div>
+                    </div>
+                    <div class="announcement-item" data-id="2">
+                        <h4>📢 System Maintenance</h4>
+                        <p>We'll be performing scheduled maintenance tomorrow from 2:00 AM to 4:00 AM. The platform will be temporarily unavailable during this time.</p>
+                        <div class="announcement-time">2 hours ago</div>
+                    </div>
+                </div>
+                <button id="viewAllAnnouncementsBtn" class="secondary">View All</button>
+            </div>
+        </div>
+        
+        <!-- AI Trading Tab - Changed to direct to trading.html -->
+        <div id="tradingTab" class="tab-content">
+            <div class="status-card">
+                <h3>🤖 AI Trading</h3>
+                <p>Click the button below to access AI Trading</p>
+                <button class="primary" id="tradingButton">Start AI Trading</button>
+            </div>
+        </div>
+        
+        <!-- Games Tab - Changed to check ads status -->
+        <div id="gamesTab" class="tab-content">
+            <div class="status-card">
+                <h3>🎮 Games</h3>
+                <p>Click the button below to access games</p>
+                <button class="primary" id="gamesButton">Play Games</button>
+            </div>
+        </div>
+        
+        <!-- Info Tab -->
+        <div id="infoTab" class="tab-content">
+            <div class="info-section">
+                <h3>📚 How It Works</h3>
+                <p>1. Complete 6 referrals and watch 20 ads to activate AI trading</p>
+                <p>2. Earn ₦5,000 per referral (first 6 referrals = ₦30,000 capital)</p>
+                <p>3. Play games to earn additional capital (₦800 per win)</p>
+                <p>4. AI trading generates daily profits (20-50% of capital)</p>
+                <p>5. Withdraw profits (minimum ₦5,000) after verification</p>
+                <p>6. Verify your bank account with ₦1,050 one-time fee to withdraw</p>
+                <p>7. Payments are processed in batches when 1,000 users reach threshold</p>
+                <p>8. Maintain a login streak for daily bonuses (₦500 per day)</p>
+                <p>9. 70% of profits go to you, 25% to company, 5% system fee</p>
+                <p>10. Support available 24/7 for any questions or issues</p>
+            </div>
+            
+            <div class="info-section">
+                <h3>💰 Cost Structure & Verification Fees</h3>
+                <p>Your current model charges ₦1,050 for bank verification. Here's how this covers initial costs:</p>
+                
+                <table class="cost-table">
+                    <thead>
+                        <tr>
+                            <th>Cost Component</th>
+                            <th>Estimated Cost (₦)</th>
+                            <th>Covered by Verification Fee?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>KYC Verification</td>
+                            <td>150</td>
+                            <td class="checkmark">✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td>Bank API Integration</td>
+                            <td>150</td>
+                            <td class="checkmark">✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td>Fraud Prevention</td>
+                            <td>100</td>
+                            <td class="checkmark">✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td>Customer Support</td>
+                            <td>100</td>
+                            <td class="checkmark">✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td>Transaction Fees</td>
+                            <td>50</td>
+                            <td class="checkmark">✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Operational Cost</strong></td>
+                            <td><strong>₦550</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Instant Deposit to Withdrawable Account</strong></td>
+                            <td><strong>₦500</strong></td>
+                            <td class="checkmark">✅ Yes</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="info-section investment-section">
+                <h3>🚀 Future Investment Opportunities</h3>
+                <p><b>Planned Launch:</b> December 2025 (we'll notify everyone in advance)</p>
+                <p>We're currently focused on building trust by proving our system works before accepting any investments.</p>
+                
+                <h4>Why We're Different</h4>
+                <p>Unlike other platforms, we're building trust first by proving our system works before accepting any investments.</p>
+                
+                <h4>What You Get Now:</h4>
+                <ul>
+                    <li>✔ Free Trading Capital from our ads revenue</li>
+                    <li>✔ Full Profit Sharing with our transparent system</li>
+                    <li>✔ Risk-Free Testing of our AI trading accuracy</li>
                 </ul>
                 
                 <h4>When Deposits Launch:</h4>
@@ -3362,48 +3292,13 @@
         setTimeout(() => {
             window.postMessage({ type: 'adminNotification', message: 'Check out the latest updates!' }, '*');
         }, 5000);
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if Telegram WebApp is available
-            if (window.Telegram && window.Telegram.WebApp) {
-                const tg = window.Telegram.WebApp;
-                tg.expand();
-
-                // Verify authentication
-                TelegramAuth.verifyUser(tg.initData)
-                    .then(response => {
-                        if (!response.success) {
-                            console.error('Authentication failed:', response.message);
-                            // Handle unauthenticated state
-                            alert('Authentication failed. Please try again.');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error during authentication check:', error);
-                        // Handle authentication error
-                        alert('Error during authentication. Please try again.');
-                    });
-            } else {
-                console.error('Telegram WebApp not available.');
-                // Handle non-Telegram environment
-                alert('Telegram WebApp not available. Please open this app in Telegram.');
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', async function () {
-            // Simulate splash screen loading
-            setTimeout(() => {
-                document.getElementById('splashScreen').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-            }, 3000); // 3 seconds splash screen duration
-        });
     </script>
     <script src="js/paystack-integration.js"></script>
     <script src="js/batch-processing.js"></script>
     <script src="js/admin-integration.js"></script>
     <!-- Telegram Authentication Scripts -->
-    <script src="js/telegram-auth.js"></script>
-    <script src="js/auth-check.js"></script>
-    <script src="js/app-init.js"></script>
+<script src="js/telegram-auth.js"></script>
+<script src="js/auth-check.js"></script>
+<script src="js/app-init.js"></script>
 </body>
 </html>
