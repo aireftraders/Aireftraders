@@ -191,6 +191,15 @@
         .hidden {
             display: none;
         }
+
+        .debug-info {
+            margin-top: 20px;
+            font-size: 10px;
+            color: #999;
+            max-width: 300px;
+            word-break: break-all;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -223,41 +232,70 @@
             </button>
             <p class="auth-message">Secure login with your Telegram account</p>
         </div>
+
+        <div class="debug-info" id="debugInfo"></div>
     </div>
     
+    <!-- Load the scripts -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="js/telegram-auth.js"></script>
-    <script src="js/auth-check.js"></script>
-    <script src="js/app-init.js"></script>
-    
     <script>
+        // Add debug log function
+        function debugLog(message) {
+            console.log(`[Splash] ${message}`);
+            const debugInfo = document.getElementById('debugInfo');
+            if (debugInfo) {
+                debugInfo.innerHTML += message + '<br>';
+            }
+        }
+        
+        // Show debug info in dev mode
+        if (window.location.hostname === 'localhost' || window.location.search.includes('debug')) {
+            document.getElementById('debugInfo').style.display = 'block';
+        }
+
+        debugLog('Splash screen loaded');
+        
         // Show Telegram auth button after loading animation
         setTimeout(() => {
             document.getElementById('telegramAuth').style.opacity = '1';
+            debugLog('Auth button displayed');
         }, 2000);
         
         // Handle Telegram login button click
         document.getElementById('telegramLoginBtn').addEventListener('click', function() {
-            // For demo purposes, use the login function
-            if (window.TelegramAuth.login()) {
-                // Set a flag to indicate we're coming from splash screen
-                sessionStorage.setItem("fromSplash", "true");
-                // Redirect to index.html after authentication
-                window.location.href = 'index.html';
-            }
-        });
-        
-        // Check authentication on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // If already authenticated, redirect to index
-            if (window.TelegramAuth.isAuthenticated()) {
-                console.log("User already authenticated, redirecting to dashboard...");
-                setTimeout(() => {
-                    sessionStorage.setItem("fromSplash", "true");
+            debugLog('Login button clicked');
+            
+            try {
+                // Force clear any existing auth state
+                sessionStorage.removeItem("authenticating");
+                sessionStorage.removeItem("redirectTarget");
+                sessionStorage.removeItem("redirectCount");
+                
+                // Log in user
+                if (window.TelegramAuth && window.TelegramAuth.login) {
+                    debugLog('Calling TelegramAuth.login()');
+                    window.TelegramAuth.login();
+                    
+                    // Clear any existing redirect blockers
+                    localStorage.removeItem('redirectBlock');
+                    
+                    // Force redirect to the dashboard
+                    debugLog('Redirecting to dashboard');
                     window.location.href = 'index.html';
-                }, 1000); // Wait for 1 second to show the splash screen
+                } else {
+                    debugLog('TelegramAuth not available');
+                    alert('Authentication service not available');
+                }
+            } catch (error) {
+                debugLog(`Error: ${error.message}`);
+                console.error('Login error:', error);
             }
         });
     </script>
+    
+    <!-- Load auth-check after our custom script -->
+    <script src="js/auth-check.js"></script>
+    <script src="js/app-init.js"></script>
 </body>
 </html>
