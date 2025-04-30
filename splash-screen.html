@@ -303,12 +303,16 @@
             }
 
             // Verify authentication
-            const isAuthenticated = await TelegramAuth.verifyAuth();
-            if (isAuthenticated) {
-                console.log('User authenticated. Redirecting to dashboard.');
-                window.location.href = 'index.html';
-            } else {
-                console.log('User not authenticated. Staying on splash screen.');
+            try {
+                const isAuthenticated = await TelegramAuth.verifyAuth();
+                if (isAuthenticated) {
+                    console.log('User authenticated. Redirecting to dashboard.');
+                    window.location.href = 'index.html';
+                } else {
+                    console.log('User not authenticated. Staying on splash screen.');
+                }
+            } catch (error) {
+                console.error('Error during authentication check:', error);
             }
         });
     </script>

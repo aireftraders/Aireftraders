@@ -203,12 +203,19 @@ async function initializeApp() {
         tg.expand();
 
         // Verify authentication
-        const isAuthenticated = await TelegramAuth.verifyAuth();
-        if (!isAuthenticated) {
-            console.error('User not authenticated. Redirecting to splash screen.');
+        try {
+            const isAuthenticated = await TelegramAuth.verifyAuth();
+            if (!isAuthenticated) {
+                console.error('User not authenticated. Redirecting to splash screen.');
+                window.location.href = 'splash-screen.html';
+            } else {
+                console.log('User authenticated. Proceeding to app.');
+                // Initialize app components
+                initializeApp();
+            }
+        } catch (error) {
+            console.error('Error during authentication check:', error);
             window.location.href = 'splash-screen.html';
-        } else {
-            console.log('User authenticated. Proceeding to app.');
         }
     } else {
         console.error('Telegram WebApp not available. Redirecting to splash screen.');
