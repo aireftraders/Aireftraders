@@ -1,588 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Ads to Continue</title>
-    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
-    <style>
-        :root {
-            --primary: #6C5CE7;
-            --primary-dark: #5649c0;
-            --success: #00B894;
-            --danger: #e74c3c;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --border-radius: 12px;
-            --box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-            --transition: all 0.3s ease;
-        }
-        
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--dark);
-            line-height: 1.6;
-        }
-        
-        .ad-container {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 2.5rem;
-            width: 90%;
-            max-width: 900px;
-            margin: 2rem auto;
-            box-shadow: var(--box-shadow);
-            text-align: center;
-        }
-        
-        .ad-header {
-            margin-bottom: 1.5rem;
-        }
-        
-        .ad-header h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin: 0 0 0.5rem;
-            color: var(--dark);
-            background: linear-gradient(to right, var(--primary), #a55eea);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        
-        .ad-header p {
-            font-size: 1.1rem;
-            color: #6c757d;
-            margin: 0;
-        }
-        
-        #adFrameContainer {
-            width: 100%;
-            min-height: 300px;
-            margin: 2rem auto;
-            border-radius: var(--border-radius);
-            background: var(--light);
-            overflow: hidden;
-            position: relative;
-            border: 1px solid rgba(0,0,0,0.08);
-        }
-        
-        #adFrame {
-            width: 100%;
-            height: 100%;
-            min-height: 300px;
-            border: none;
-        }
-        
-        .progress-container {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin: 2rem 0;
-            gap: 0.5rem;
-        }
-        
-        .progress-step {
-            width: 2.5rem;
-            height: 2.5rem;
-            border-radius: 50%;
-            background: #e9ecef;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: var(--transition);
-            position: relative;
-        }
-        
-        .progress-step.active {
-            background: var(--primary);
-            color: white;
-            transform: scale(1.1);
-            box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.2);
-        }
-        
-        .progress-step.completed {
-            background: var(--success);
-            color: white;
-        }
-        
-        .progress-step.completed::after {
-            content: '✓';
-            position: absolute;
-        }
-        
-        #timerDisplay {
-            margin: 1.5rem 0;
-            font-weight: 600;
-            font-size: 1.2rem;
-            color: #495057;
-        }
-        
-        #timerCount {
-            font-weight: 700;
-            color: var(--primary);
-        }
-        
-        .watch-ad-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 1rem;
-            transition: var(--transition);
-            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
-        }
-        
-        .watch-ad-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
-        }
-        
-        .watch-ad-btn:active {
-            transform: translateY(0);
-        }
-        
-        .ad-status {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin: 1rem 0;
-            font-size: 0.9rem;
-            color: #6c757d;
-        }
-        
-        .access-denied {
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: rgba(231, 76, 60, 0.1);
-            border-radius: var(--border-radius);
-            border-left: 4px solid var(--danger);
-        }
-        
-        .access-denied h3 {
-            color: var(--danger);
-            margin-top: 0;
-            font-size: 1.3rem;
-        }
-        
-        .time-remaining {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .time-remaining span {
-            color: var(--primary);
-            font-weight: 700;
-        }
-        
-        @media (max-width: 768px) {
-            .ad-container {
-                padding: 1.5rem;
-                width: 95%;
-            }
-            
-            .ad-header h2 {
-                font-size: 1.5rem;
-            }
-            
-            .ad-header p {
-                font-size: 1rem;
-            }
-            
-            #adFrameContainer, #adFrame {
-                min-height: 250px;
-            }
-            
-            .progress-step {
-                width: 2rem;
-                height: 2rem;
-                font-size: 0.8rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Complete Ads to Continue</title>
+  <style>
+    :root {
+      --primary: #4a6bff;
+      --secondary: #f5f7ff;
+      --text: #333;
+      --light-text: #777;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--secondary);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ad-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: var(--box-shadow);
+      padding: 2rem;
+      max-width: 800px;
+      width: 90%;
+      margin: 2rem auto;
+      text-align: center;
+    }
+
+    .ad-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .ad-header h2 {
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .ad-header p {
+      color: var(--light-text);
+    }
+
+    .ad-status {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+    }
+
+    .progress-container {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+
+    .progress-container::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #e0e0e0;
+      transform: translateY(-50%);
+      z-index: 1;
+    }
+
+    .progress-step {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #999;
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
+      margin: 0 2px;
+    }
+
+    .progress-step.completed {
+      background: var(--primary);
+      color: white;
+    }
+
+    .progress-step.active {
+      background: var(--primary);
+      color: white;
+      border: 3px solid #b3c2ff;
+    }
+
+    #adFrameContainer {
+      width: 100%;
+      min-height: 250px;
+      margin-bottom: 1.5rem;
+      background: #f0f0f0;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #timerDisplay {
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    .watch-ad-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 5px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .watch-ad-btn:hover {
+      background: #3a56d4;
+      transform: translateY(-2px);
+    }
+
+    .watch-ad-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .ad-complete-message {
+      display: none;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-radius: 5px;
+      font-weight: 500;
+    }
+
+    nav {
+      width: 100%;
+      background: var(--primary);
+      padding: 1rem;
+      text-align: center;
+      box-shadow: var(--box-shadow);
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      .progress-step {
+        width: 25px;
+        height: 25px;
+        font-size: 0.8rem;
+      }
+      
+      .ad-container {
+        padding: 1.5rem;
+      }
+    }
+  </style>
 </head>
 <body>
-    <!-- Add navigation bar -->
-    <nav style="width: 100%; background: var(--primary); padding: 1rem; text-align: center; box-shadow: var(--box-shadow);">
-        <a href="index.html" style="color: white; text-decoration: none; font-size: 1.2rem; font-weight: 600;">Dashboard</a>
-    </nav>
-    
-    <div class="ad-container" id="mainContainer">
-        <div class="ad-header">
-            <h2>Complete Ads to Continue</h2>
-            <p id="adPurpose">Watch ads to unlock access</p>
-        </div>
-        
-        <div class="ad-status">
-            <span>Progress: <span id="completedCount">0</span>/20</span>
-            <span>Estimated time: <span id="estimatedTime">5 minutes</span></span>
-        </div>
-        
-        <div class="progress-container" id="progressSteps"></div>
-        
-        <div id="adFrameContainer">
-            <!-- Ad will be loaded here -->
-        </div>
-        
-        <div id="timerDisplay">Ad completes in <span id="timerCount">15</span> seconds</div>
-        
-        <button class="watch-ad-btn" id="watchAdBtn">Watch Ad</button>
+
+  <nav>
+    <a href="index.html">Dashboard</a>
+  </nav>
+
+  <div class="ad-container" id="mainContainer">
+    <div class="ad-header">
+      <h2>Complete Ads to Continue</h2>
+      <p id="adPurpose">Watch 20 ads to unlock access</p>
     </div>
 
-    <script>
-        // Initialize Dexie database
-        const db = new Dexie("AI_REF_TRADERS_DB");
+    <div class="ad-status">
+      <span>Progress: <span id="completedCount">0</span>/<span id="totalAdsDisplay">20</span></span>
+      <span>Estimated time: <span id="estimatedTime">5 minutes</span></span>
+    </div>
+
+    <div class="progress-container" id="progressSteps"></div>
+
+    <div id="adFrameContainer">
+      <div id="adPlaceholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#666;">
+        <p>Ad will load when you click "Watch Ad"</p>
+      </div>
+      <div id="adContent"></div>
+    </div>
+
+    <div id="timerDisplay">Ad completes in <span id="timerCount">30</span> seconds</div>
+
+    <button class="watch-ad-btn" id="watchAdBtn">Watch Ad (1/20)</button>
+    
+    <div id="adCompleteMessage" class="ad-complete-message">
+      All 20 ads completed! You can now continue to your destination.
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const totalAds = 20;
+    const adDuration = 30; // Increased to 30 seconds for better ad viewing
+    let currentAd = 0;
+    let timer;
+    let secondsRemaining = adDuration;
+    let isAdRunning = false;
+
+    // DOM elements
+    const watchAdBtn = document.getElementById("watchAdBtn");
+    const timerDisplay = document.getElementById("timerCount");
+    const completedCount = document.getElementById("completedCount");
+    const totalAdsDisplay = document.getElementById("totalAdsDisplay");
+    const progressSteps = document.getElementById("progressSteps");
+    const adCompleteMessage = document.getElementById("adCompleteMessage");
+    const estimatedTime = document.getElementById("estimatedTime");
+    const adPurpose = document.getElementById("adPurpose");
+    const adPlaceholder = document.getElementById("adPlaceholder");
+    const adContent = document.getElementById("adContent");
+
+    // Initialize
+    totalAdsDisplay.textContent = totalAds;
+    adPurpose.textContent = `Watch ${totalAds} ads to unlock access`;
+    updateEstimatedTime();
+    createProgressSteps();
+
+    function createProgressSteps() {
+      progressSteps.innerHTML = '';
+      for (let i = 0; i < totalAds; i++) {
+        const step = document.createElement("div");
+        step.classList.add("progress-step");
+        step.id = "step-" + i;
+        step.textContent = i + 1;
+        progressSteps.appendChild(step);
+      }
+      updateProgress();
+    }
+
+    function updateProgress() {
+      for (let i = 0; i < totalAds; i++) {
+        const step = document.getElementById("step-" + i);
+        if (i < currentAd) {
+          step.classList.add("completed");
+          step.classList.remove("active");
+        } else if (i === currentAd) {
+          step.classList.add("active");
+        } else {
+          step.classList.remove("completed", "active");
+        }
+      }
+      completedCount.textContent = currentAd;
+    }
+
+    function loadAd() {
+      // Clear previous ad
+      adContent.innerHTML = '';
+      
+      // Load your ad script
+      const adScript = document.createElement('script');
+      adScript.type = 'text/javascript';
+      adScript.innerHTML = `
+        atOptions = {
+          'key' : '8a1d6d42d6addf614a0b20c144270316',
+          'format' : 'iframe',
+          'height' : 250,
+          'width' : 300,
+          'params' : {}
+        };
+      `;
+      adContent.appendChild(adScript);
+      
+      const invokeScript = document.createElement('script');
+      invokeScript.type = 'text/javascript';
+      invokeScript.src = '//innumerablemakeupreligious.com/8a1d6d42d6addf614a0b20c144270316/invoke.js';
+      adContent.appendChild(invokeScript);
+      
+      adPlaceholder.style.display = "none";
+    }
+
+    function resetAdFrame() {
+      adContent.innerHTML = '';
+      adPlaceholder.style.display = "flex";
+    }
+
+    function startTimer() {
+      secondsRemaining = adDuration;
+      timerDisplay.textContent = secondsRemaining;
+      isAdRunning = true;
+      
+      timer = setInterval(() => {
+        secondsRemaining--;
+        timerDisplay.textContent = secondsRemaining;
         
-        // Define database schema (must match index.html)
-        db.version(1).stores({
-            users: '++id, telegramId, balance, referrals, adsWatched, totalAdsWatched, verified, tradingActive, tradingCapital, dailyProfit, totalProfit, withdrawableProfit, bankDetails, paymentCircle, gameEarnings, lastAdWatchTime, streak, announcements',
-            announcements: '++id, title, content, time, unread',
-            supportTickets: '++id, userId, subject, message, status, createdAt',
-            adminCredentials: '++id, username, password',
-            transactions: '++id, userId, type, amount, status, timestamp'
-        });
-
-        // Configuration
-        const totalAds = 20;
-        const minAdDuration = 15000; // 15 seconds per ad
-        const accessCooldown = 60 * 60 * 1000; // 60 minutes in milliseconds
-        let currentAdCount = 0;
-        let timer = null;
-        let adStartTime = 0;
-        let canCountAd = false;
-        let accessDenied = false;
-        let cooldownInterval = null;
-        let redirectTo = 'game.html'; // Default to game.html
-        let userData = null;
-        let timerInterval = null;
-        let timerStartTime = 0;
-        const gameDuration = 55 * 60 * 1000; // 55 minutes in milliseconds
-
-        // Load user data from IndexedDB
-        async function loadUserData() {
-            try {
-                // For demo purposes, we'll use a default user if not in Telegram
-                const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'demo-user';
-                
-                // Check if user exists in database
-                let user = await db.users.where('telegramId').equals(userId).first();
-                
-                if (!user) {
-                    // Create new user with default values
-                    user = {
-                        telegramId: userId,
-                        balance: 5000,
-                        referrals: 0,
-                        adsWatched: 0,
-                        totalAdsWatched: 0,
-                        tradingActive: false,
-                        verified: false,
-                        tradingCapital: 0,
-                        dailyProfit: 0,
-                        totalProfit: 0,
-                        withdrawableProfit: 0,
-                        bankDetails: null,
-                        paymentCircle: { current: 0, total: 1000 },
-                        gameEarnings: 0,
-                        lastAdWatchTime: null,
-                        streak: {
-                            count: 0,
-                            lastLogin: null,
-                            bonus: 0
-                        },
-                        announcements: {
-                            read: [2],
-                            unread: [1]
-                        },
-                        showGamesButton: false,
-                        gameTimerStart: 0
-                    };
-                    
-                    // Add new user to database
-                    await db.users.add(user);
-                }
-                
-                // Update user data
-                userData = user;
-                currentAdCount = userData.adsWatched || 0;
-                
-                return userData;
-            } catch (error) {
-                console.error('Error loading user data:', error);
-                return null;
-            }
+        if (secondsRemaining <= 0) {
+          clearInterval(timer);
+          isAdRunning = false;
+          completeAd();
         }
+      }, 1000);
+    }
 
-        // Save user data to IndexedDB
-        async function saveUserData() {
-            try {
-                const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'demo-user';
-                await db.users.where('telegramId').equals(userId).modify(userData);
-            } catch (error) {
-                console.error('Error saving user data:', error);
-            }
-        }
+    function completeAd() {
+      currentAd++;
+      updateProgress();
+      resetAdFrame();
+      updateEstimatedTime();
+      
+      if (currentAd < totalAds) {
+        watchAdBtn.disabled = false;
+        watchAdBtn.textContent = `Watch Next Ad (${currentAd + 1}/${totalAds})`;
+      } else {
+        watchAdBtn.style.display = "none";
+        timerDisplay.style.display = "none";
+        adCompleteMessage.style.display = "block";
+        
+        // Redirect or unlock content after completion
+        setTimeout(() => {
+          // window.location.href = "https://innumerablemakeupreligious.com/hkum2zt0?key=4c7f61b1a32d08c6cd161087bfd02cbd";
+        }, 2000);
+      }
+    }
 
-        // Check access status
-        function checkAccessStatus() {
-            if (!userData) return false;
-            
-            const now = Date.now();
-            const lastWatchTime = userData.lastAdWatchTime || 0;
-            
-            // If user has completed ads and it's been less than cooldown
-            if (userData.adsWatched >= totalAds && (now - lastWatchTime) < accessCooldown) {
-                accessDenied = true;
-                showAccessDenied(lastWatchTime + accessCooldown, redirectTo);
-                return true;
-            }
-            
-            // Reset if cooldown is over
-            if (userData.adsWatched >= totalAds && (now - lastWatchTime) >= accessCooldown) {
-                userData.adsWatched = 0;
-                userData.lastAdWatchTime = 0;
-                saveUserData();
-            }
-            
-            return false;
-        }
+    function updateEstimatedTime() {
+      const remainingAds = totalAds - currentAd;
+      const minutes = Math.ceil((remainingAds * adDuration) / 60);
+      estimatedTime.textContent = `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    }
 
-        // Show access denied message
-        function showAccessDenied(expiryTime, redirectUrl) {
-            const mainContainer = document.getElementById('mainContainer');
-            mainContainer.innerHTML = `
-                <div class="ad-header">
-                    <h2>Ads Limit Reached</h2>
-                    <p>You've completed your daily ads</p>
-                </div>
-                
-                <div class="access-denied">
-                    <h3>Access Temporarily Unavailable</h3>
-                    <p>You've watched 20 ads. Please try again in 60 minutes.</p>
-                    <div class="time-remaining">Time remaining: <span id="cooldownTimer"></span></div>
-                </div>
-                
-                <button class="watch-ad-btn" id="returnBtn">Return to Previous Page</button>
-            `;
-            
-            updateCooldownTimer(expiryTime);
-            cooldownInterval = setInterval(() => updateCooldownTimer(expiryTime), 1000);
-            
-            document.getElementById('returnBtn').addEventListener('click', () => {
-                window.location.href = document.referrer || 'index.html';
-            });
-        }
+    // Event Listeners
+    watchAdBtn.addEventListener("click", () => {
+      if (isAdRunning || currentAd >= totalAds) return;
+      
+      watchAdBtn.disabled = true;
+      watchAdBtn.textContent = "Ad Playing...";
+      loadAd();
+      startTimer();
+    });
 
-        function updateCooldownTimer(expiryTime) {
-            const remaining = expiryTime - Date.now();
-            if (remaining <= 0) {
-                clearInterval(cooldownInterval);
-                window.location.reload();
-                return;
-            }
-            
-            const minutes = Math.floor(remaining / (1000 * 60));
-            const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-            
-            document.getElementById('cooldownTimer').textContent = 
-                `${minutes}m ${seconds}s`;
-        }
-
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Load user data
-            await loadUserData();
-            
-            // Check access status
-            if (checkAccessStatus()) return;
-            
-            // Setup page
-            setupPage();
-        });
-
-        function setupPage() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const source = urlParams.get('source');
-            
-            if (source === 'games' || source === 'trading') {
-                redirectTo = source + '.html';
-                localStorage.setItem('postAdRedirect', redirectTo);
-            } else {
-                const storedRedirect = localStorage.getItem('postAdRedirect');
-                if (storedRedirect) {
-                    redirectTo = storedRedirect;
-                } else if (document.referrer && document.referrer.includes('games.html')) {
-                    redirectTo = 'games.html';
-                } else if (document.referrer && document.referrer.includes('trading.html')) {
-                    redirectTo = 'trading.html';
-                }
-                localStorage.setItem('postAdRedirect', redirectTo);
-            }
-
-            currentAdCount = Math.min(userData?.adsWatched || 0, totalAds);
-            
-            if (currentAdCount >= totalAds) {
-                grantAccessAndRedirect();
-                return;
-            }
-            
-            updateProgressDisplay();
-            loadAd();
-            
-            document.getElementById('watchAdBtn').addEventListener('click', handleAdWatch);
-        }
-
-        function updateProgressDisplay() {
-            const remaining = Math.max(0, totalAds - currentAdCount);
-            const estimatedMinutes = Math.ceil((remaining * minAdDuration) / 60000);
-            
-            document.getElementById('adPurpose').textContent = 
-                remaining > 0 ? `Watch ${remaining} more ads to continue` : 'All ads completed!';
-            document.getElementById('completedCount').textContent = currentAdCount;
-            document.getElementById('estimatedTime').textContent = 
-                estimatedMinutes > 1 ? `${estimatedMinutes} minutes` : 'less than a minute';
-            
-            const container = document.getElementById('progressSteps');
-            container.innerHTML = '';
-            
-            for (let i = 0; i < totalAds; i++) {
-                const step = document.createElement('div');
-                step.className = 'progress-step';
-                step.textContent = i + 1;
-                if (i < currentAdCount) {
-                    step.classList.add('completed');
-                    step.textContent = '';
-                }
-                if (i === currentAdCount && currentAdCount < totalAds) {
-                    step.classList.add('active');
-                }
-                container.appendChild(step);
-            }
-        }
-
-        function loadAd() {
-            canCountAd = false;
-            adStartTime = Date.now();
-            
-            const adContainer = document.getElementById('adFrameContainer');
-            adContainer.innerHTML = '';
-            
-            // Load ad scripts
-            const adScript1 = document.createElement('script');
-            adScript1.type = 'text/javascript';
-            adScript1.innerHTML = `
-                atOptions = {
-                    'key' : '8a1d6d42d6addf614a0b20c144270316',
-                    'format' : 'iframe',
-                    'height' : 250,
-                    'width' : 300,
-                    'params' : {}
-                };
-            `;
-
-            const adScript2 = document.createElement('script');
-            adScript2.type = 'text/javascript';
-            adScript2.src = '//innumerablemakeupreligious.com/8a1d6d42d6addf614a0b20c144270316/invoke.js';
-
-            adContainer.appendChild(adScript1);
-            adContainer.appendChild(adScript2);
-            
-            startTimer();
-        }
-
-        function startTimer() {
-            let seconds = 15;
-            updateTimerDisplay(seconds);
-            
-            clearInterval(timer);
-            timer = setInterval(() => {
-                seconds--;
-                updateTimerDisplay(seconds);
-                
-                if (seconds <= 0) {
-                    clearInterval(timer);
-                    canCountAd = true;
-                    document.getElementById('watchAdBtn').textContent = "Continue";
-                    document.getElementById('watchAdBtn').style.backgroundColor = 'var(--success)';
-                }
-            }, 1000);
-        }
-
-        function updateTimerDisplay(seconds) {
-            document.getElementById('timerCount').textContent = seconds;
-            document.getElementById('timerCount').style.color = seconds <= 5 ? 'var(--danger)' : 'var(--primary)';
-        }
-
-        async function handleAdWatch() {
-            if (!canCountAd) {
-                const elapsed = Date.now() - adStartTime;
-                const remaining = Math.ceil((minAdDuration - elapsed) / 1000);
-                alert(`Please watch the ad for ${remaining} more seconds before continuing.`);
-                return;
-            }
-
-            currentAdCount++;
-            
-            // Update user data
-            userData.adsWatched = currentAdCount;
-            userData.totalAdsWatched = (userData.totalAdsWatched || 0) + 1;
-            userData.lastAdWatchTime = Date.now();
-            await saveUserData();
-            
-            // Notify parent/opener window (index.html) if exists
-            const targetWindow = window.opener || window.parent;
-            if (targetWindow && targetWindow !== window) {
-                targetWindow.postMessage({
-                    type: 'adCountUpdate',
-                    adsWatched: currentAdCount,
-                    totalAdsWatched: userData.totalAdsWatched,
-                    lastAdWatchTime: userData.lastAdWatchTime
-                }, '*');
-            }
-
-            notifyIndexPage(); // Notify index.html
-
-            if (currentAdCount >= totalAds) {
-                grantAccessAndRedirect();
-                return;
-            }
-
-            updateProgressDisplay();
-            document.getElementById('watchAdBtn').textContent = "Watch Ad";
-            document.getElementById('watchAdBtn').style.backgroundColor = 'var(--primary)';
-            loadAd();
-        }
-
-        function notifyIndexPage() {
-            window.opener.postMessage(
-                { type: 'adsNotification', message: 'You have successfully watched an ad!' },
-                '*'
-            );
-        }
-
-        function grantAccessAndRedirect() {
-            const redirectUrl = localStorage.getItem('postAdRedirect') || 'game.html';
-            const finalRedirectUrl = redirectUrl.includes('?') 
-                ? `${redirectUrl}&fromAds=true` 
-                : `${redirectUrl}?fromAds=true`;
-            window.location.href = finalRedirectUrl;
-        }
-    </script>
+    // Show the current ad number in the button initially
+    watchAdBtn.textContent = `Watch Ad (1/${totalAds})`;
+  </script>
 </body>
 </html>
