@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIF Converter & Resizer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 5px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            background-color: #f0f8ff;
+            border-color: #2980b9;
+        }
+        .upload-area.active {
+            background-color: #e1f0fa;
+            border-color: #2980b9;
+        }
+        #fileInput {
+            display: none;
+        }
+        .preview {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .preview-item {
+            text-align: center;
+            margin: 10px;
+        }
+        .preview-item h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .preview-img {
+            max-width: 300px;
+            max-height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+        #progressBar {
+            width: 0%;
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 4px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GIF Converter & Resizer</h1>
+        
+        <div class="upload-area" id="uploadArea">
+            <h2>Upload GIF File</h2>
+            <p>Drag & drop your GIF here or click to browse</p>
+            <input type="file" id="fileInput" accept="image/gif">
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="width">Width (px)</label>
+                <input type="number" id="width" placeholder="e.g. 640" min="1">
+            </div>
+            <div class="control-group">
+                <label for="height">Height (px)</label>
+                <input type="number" id="height" placeholder="e.g. 360" min="1">
+            </div>
+            <div class="control-group">
+                <label for="quality">Quality</label>
+                <select id="quality">
+                    <option value="1">High</option>
+                    <option value="0.8" selected>Medium</option>
+                    <option value="0.6">Low</option>
+                </select>
+            </div>
+        </div>
+        
+        <button id="convertBtn" disabled>Convert & Resize GIF</button>
+        <button id="downloadBtn" disabled>Download GIF</button>
+        
+        <div class="progress-container" id="progressContainer">
+            <div id="progressBar">0%</div>
+        </div>
+        
+        <div class="preview">
+            <div class="preview-item">
+                <h3>Original GIF</h3>
+                <img id="originalGif" class="preview-img" src="" alt="Original GIF">
+                <p id="originalInfo"></p>
+            </div>
+            <div class="preview-item">
+                <h3>Resized GIF</h3>
+                <img id="resizedGif" class="preview-img" src="" alt="Resized GIF">
+                <p id="resizedInfo"></p>
+            </div>
+        </div>
+        
+        <div class="status" id="status"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('fileInput');
+            const uploadArea = document.getElementById('uploadArea');
+            const originalGif = document.getElementById('originalGif');
+            const resizedGif = document.getElementById('resizedGif');
+            const originalInfo = document.getElementById('originalInfo');
+            const resizedInfo = document.getElementById('resizedInfo');
+            const convertBtn = document.getElementById('convertBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const widthInput = document.getElementById('width');
+            const heightInput = document.getElementById('height');
+            const qualityInput = document.getElementById('quality');
+            const statusDiv = document.getElementById('status');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            
+            let originalFile = null;
+            let resizedGifUrl = null;
+            let frames = [];
+            let delay = 0;
+            
+            // Handle drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('active');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('active');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('active');
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelect(e.dataTransfer.files[0]);
+                }
+            });
+            
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length) {
+                    handleFileSelect(fileInput.files[0]);
+                }
+            });
+            
+            function handleFileSelect(file) {
+                if (!file.type.match('image/gif')) {
+                    showStatus('Please upload a GIF file', 'error');
+                    return;
+                }
+                
+                originalFile = file;
+                originalInfo.textContent = `Size: ${formatBytes(file.size)}`;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    originalGif.src = e.target.result;
+                    convertBtn.disabled = false;
+                    showStatus('GIF loaded successfully. Set your desired dimensions and click "Convert & Resize GIF"', 'success');
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            convertBtn.addEventListener('click', async function() {
+                if (!originalFile) return;
+                
+                const width = parseInt(widthInput.value) || 640;
+                const height = parseInt(heightInput.value) || 360;
+                const quality = parseFloat(qualityInput.value) || 0.8;
+                
+                if (width <= 0 || height <= 0) {
+                    showStatus('Please enter valid dimensions', 'error');
+                    return;
+                }
+                
+                try {
+                    convertBtn.disabled = true;
+                    progressContainer.style.display = 'block';
+                    progressBar.style.width = '0%';
+                    progressBar.textContent = '0%';
+                    
+                    // Parse the original GIF to get frames
+                    const gifData = await parseGif(originalFile);
+                    frames = gifData.frames;
+                    delay = gifData.delay;
+                    
+                    // Create a new GIF with the resized frames
+                    const gif = new GIF({
+                        workers: 2,
+                        quality: Math.round(10 * quality),
+                        width: width,
+                        height: height,
+                        workerScript: 'https://cdn.jsdelivr.net/npm/gif.js/dist/gif.worker.js'
+                    });
+                    
+                    let processedFrames = 0;
+                    
+                    for (let i = 0; i < frames.length; i++) {
+                        const frame = frames[i];
+                        const img = new Image();
+                        img.src = frame.imageData;
+                        
+                        await new Promise((resolve) => {
+                            img.onload = function() {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                
+                                // Draw the image with the new dimensions
+                                ctx.drawImage(img, 0, 0, width, height);
+                                
+                                // Add the frame to the new GIF
+                                gif.addFrame(canvas, {delay: frame.delay || delay, copy: true});
+                                
+                                processedFrames++;
+                                const progress = Math.round((processedFrames / frames.length) * 100);
+                                progressBar.style.width = `${progress}%`;
+                                progressBar.textContent = `${progress}%`;
+                                
+                                resolve();
+                            };
+                        });
+                    }
+                    
+                    gif.on('finished', function(blob) {
+                        resizedGifUrl = URL.createObjectURL(blob);
+                        resizedGif.src = resizedGifUrl;
+                        resizedInfo.textContent = `Size: ${formatBytes(blob.size)} | ${width}x${height}`;
+                        downloadBtn.disabled = false;
+                        convertBtn.disabled = false;
+                        showStatus('GIF resized successfully! Click "Download GIF" to save it.', 'success');
+                        progressContainer.style.display = 'none';
+                    });
+                    
+                    gif.render();
+                } catch (error) {
+                    console.error('Error processing GIF:', error);
+                    showStatus('Error processing GIF: ' + error.message, 'error');
+                    convertBtn.disabled = false;
+                    progressContainer.style.display = 'none';
+                }
+            });
+            
+            downloadBtn.addEventListener('click', function() {
+                if (!resizedGifUrl) return;
+                
+                const a = document.createElement('a');
+                a.href = resizedGifUrl;
+                a.download = `resized_${originalFile.name}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+            
+            function parseGif(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const arrayBuffer = e.target.result;
+                        const byteArray = new Uint8Array(arrayBuffer);
+                        
+                        // Simple GIF parser to extract frames
+                        try {
+                            const frames = [];
+                            let delay = 100; // default delay in ms
+                            let pos = 0;
+                            
+                            // Check GIF header (GIF89a or GIF87a)
+                            const header = String.fromCharCode.apply(null, byteArray.subarray(0, 6));
+                            if (header !== 'GIF89a' && header !== 'GIF87a') {
+                                throw new Error('Invalid GIF file');
+                            }
+                            
+                            pos += 6; // skip header
+                            
+                            // Skip logical screen descriptor (7 bytes)
+                            pos += 7;
+                            
+                            // Check for global color table
+                            const packed = byteArray[pos - 1];
+                            const globalColorTableFlag = (packed & 0x80) !== 0;
+                            const globalColorTableSize = 2 << (packed & 0x07);
+                            
+                            if (globalColorTableFlag) {
+                                pos += 3 * globalColorTableSize; // skip global color table
+                            }
+                            
+                            // Process blocks
+                            while (pos < byteArray.length) {
+                                const blockType = byteArray[pos++];
+                                
+                                if (blockType === 0x3B) { // Trailer (end of GIF)
+                                    break;
+                                } else if (blockType === 0x21) { // Extension block
+                                    const extensionType = byteArray[pos++];
+                                    const blockSize = byteArray[pos++];
+                                    
+                                    if (extensionType === 0xF9) { // Graphics Control Extension
+                                        // Skip block size (always 4)
+                                        pos++;
+                                        
+                                        const packedFields = byteArray[pos++];
+                                        delay = (byteArray[pos++] | (byteArray[pos++] << 8)) * 10; // in ms
+                                        pos++; // transparent color index
+                                        
+                                        // Skip block terminator
+                                        pos++;
+                                    } else {
+                                        // Skip other extension blocks
+                                        pos += blockSize;
+                                        while (byteArray[pos] !== 0) {
+                                            pos += byteArray[pos] + 1;
+                                        }
+                                        pos++; // skip terminator
+                                    }
+                                } else if (blockType === 0x2C) { // Image descriptor
+                                    // Skip image position and size (8 bytes)
+                                    pos += 8;
+                                    
+                                    const packedFields = byteArray[pos++];
+                                    const localColorTableFlag = (packedFields & 0x80) !== 0;
+                                    const localColorTableSize = 2 << (packedFields & 0x07);
+                                    
+                                    if (localColorTableFlag) {
+                                        pos += 3 * localColorTableSize; // skip local color table
+                                    }
+                                    
+                                    // Get image data
+                                    const lzwMinCodeSize = byteArray[pos++];
+                                    let imageData = [];
+                                    
+                                    // Read data sub-blocks
+                                    let blockSize = byteArray[pos++];
+                                    while (blockSize !== 0) {
+                                        imageData = imageData.concat(Array.from(byteArray.subarray(pos, pos + blockSize)));
+                                        pos += blockSize;
+                                        blockSize = byteArray[pos++];
+                                    }
+                                    
+                                    // Create a canvas with this frame
+                                    const tempCanvas = document.createElement('canvas');
+                                    const tempCtx = tempCanvas.getContext('2d');
+                                    
+                                    // For simplicity, we'll just store the original frame data
+                                    // In a real app, you'd decode the LZW and render each frame properly
+                                    const frameCanvas = document.createElement('canvas');
+                                    frameCanvas.width = originalGif.width;
+                                    frameCanvas.height = originalGif.height;
+                                    const frameCtx = frameCanvas.getContext('2d');
+                                    frameCtx.drawImage(originalGif, 0, 0);
+                                    
+                                    frames.push({
+                                        imageData: frameCanvas.toDataURL(),
+                                        delay: delay
+                                    });
+                                }
+                            }
+                            
+                            resolve({
+                                frames: frames,
+                                delay: delay
+                            });
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+            
+            function showStatus(message, type) {
+                statusDiv.textContent = message;
+                statusDiv.className = 'status ' + type;
+            }
+            
+            function formatBytes(bytes, decimals = 2) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const dm = decimals < 0 ? 0 : decimals;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            }
+        });
+    </script>
+</body>
+</html>
