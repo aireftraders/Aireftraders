@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI REF-TRADERS</title>
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --secondary: #00CEFF;
+            --dark: #2D3436;
+            --light: #F5F6FA;
+            --success: #00B894;
+            --danger: #D63031;
+            --warning: #FDCB6E;
+            --nigerian-green: #008753;
+            --nigerian-white: #FFFFFF;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            overflow: hidden;
+        }
+        
+        .splash-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .logo-container {
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease-in-out;
+        }
+        
+        .logo {
+            width: 200px;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        .app-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 20px 0 10px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent; /* Fallback */
+        }
+        
+        .app-subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .loading-bar {
+            width: 80%;
+            height: 6px;
+            background-color: #eee;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .loading-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 3px;
+            animation: loading 3s ease-in-out forwards;
+        }
+        
+        .loading-text {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .nigeria-flag {
+            display: flex;
+            margin: 30px auto;
+            width: 60px;
+            height: 40px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .flag-part {
+            flex: 1;
+            height: 100%;
+        }
+        
+        .flag-part:nth-child(1),
+        .flag-part:nth-child(3) {
+            background-color: var(--nigerian-green);
+        }
+        
+        .flag-part:nth-child(2) {
+            background-color: var(--nigerian-white);
+        }
+        
+        .nigeria-text {
+            font-size: 14px;
+            color: var(--nigerian-green);
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        @keyframes loading {
+            0% { width: 0%; }
+            20% { width: 20%; }
+            50% { width: 50%; }
+            80% { width: 80%; }
+            100% { width: 100%; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+
+        .debug-info {
+            margin-top: 20px;
+            font-size: 10px;
+            color: #999;
+            max-width: 300px;
+            word-break: break-all;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="splash-container">
+        <div class="logo-container">
+            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2030%2C%202025%2C%2002_36_32%20AM-1wDDnne5fpylqjmbzveVpRiAKxNNkS.png" alt="AI REF-TRADERS Logo" class="logo">
+            <h1 class="app-title">AI REF-TRADERS</h1>
+            <p class="app-subtitle">Nigeria's #1 AI Trading & Referral Platform</p>
+        </div>
+        
+        <div class="loading-container">
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-text">Loading application...</p>
+        </div>
+        
+        <div class="nigeria-flag">
+            <div class="flag-part"></div>
+            <div class="flag-part"></div>
+            <div class="flag-part"></div>
+        </div>
+        <p class="nigeria-text">Made for Nigerians</p>
+    </div>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="js/telegram-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Initialize Telegram WebApp
+            const tg = window.Telegram.WebApp;
+            if (tg) {
+                tg.expand();
+            }
+
+            // Simulate automatic registration and transition
+            try {
+                const isAuthenticated = await TelegramAuth.verifyAuth();
+                if (isAuthenticated) {
+                    console.log('User authenticated. Redirecting to dashboard.');
+                    window.location.href = 'index.html';
+                } else {
+                    console.log('User not authenticated. Registering user automatically.');
+                    // Simulate automatic registration
+                    await TelegramAuth.registerUser();
+                    console.log('User registered. Redirecting to dashboard.');
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('Error during authentication or registration:', error);
+            }
+        });
+    </script>
+    <script src="js/auth-check.js"></script>
+    <script src="js/app-init.js"></script>
+</body>
+</html>
