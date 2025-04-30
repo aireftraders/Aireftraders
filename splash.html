@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI REF-TRADERS | Loading</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --primary-dark: #5649C2;
+            --secondary: #00CEFF;
+            --accent: #008753;
+            --white: #FFFFFF;
+            --light-gray: #F8F9FA;
+            --dark: #1A1D1F;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #121212, #1E1E1E);
+            color: var(--white);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .splash-container {
+            text-align: center;
+            width: 100%;
+            max-width: 480px;
+            padding: 0 24px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.8s cubic-bezier(0.33, 1, 0.68, 1) 0.2s forwards;
+        }
+        
+        .logo-container {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 32px;
+            perspective: 1000px;
+        }
+        
+        .logo-wrapper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .logo-platform {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 24px;
+            background: linear-gradient(145deg, #1E1E1E, #252525);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backface-visibility: hidden;
+            transform: rotateX(0deg);
+            transition: var(--transition);
+        }
+        
+        .logo-img {
+            width: 80%;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+        
+        .logo-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 24px;
+            background: radial-gradient(circle at center, rgba(108, 92, 231, 0.15) 0%, transparent 70%);
+            animation: pulseGlow 4s ease-in-out infinite;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 8px;
+            background: linear-gradient(to right, var(--white), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0 0 40px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+            margin: 0 auto;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+            transition: width 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                           transparent, 
+                           rgba(255, 255, 255, 0.2), 
+                           transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        .loading-text {
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+            height: 20px;
+        }
+        
+        .security-badge {
+            position: fixed;
+            bottom: 24px;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.8s forwards;
+        }
+        
+        .security-badge svg {
+            margin-right: 8px;
+            fill: var(--accent);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotateX(0deg) rotateY(0deg); }
+            50% { transform: translateY(-12px) rotateX(2deg) rotateY(2deg); }
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(-100%); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="splash-container">
+        <div class="logo-container">
+            <div class="logo-wrapper">
+                <div class="logo-platform">
+                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2030%2C%202025%2C%2002_36_32%20AM-1wDDnne5fpylqjmbzveVpRiAKxNNkS.png" 
+                         alt="AI REF-TRADERS Logo" 
+                         class="logo-img">
+                    <div class="logo-glow"></div>
+                </div>
+            </div>
+        </div>
+        
+        <h1 class="title">AI REF-TRADERS</h1>
+        <p class="subtitle">Nigeria's Premier AI Trading Platform</p>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="loading-text" id="loadingText">Initializing secure trading environment</div>
+    </div>
+    
+    <div class="security-badge">
+        <svg width="16" height="16" viewBox="0 0 24 24">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11V11.99z"/>
+        </svg>
+        <span>Secure Connection • Bank-Grade Encryption</span>
+    </div>
+    
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        if (tg) {
+            tg.expand();
+            tg.enableClosingConfirmation();
+        }
+        
+        // Check if splash was already shown
+        const splashShown = sessionStorage.getItem('splashShown');
+        
+        if (splashShown) {
+            // Skip splash if already shown in this session
+            redirectToApp();
+        } else {
+            // Show splash screen
+            sessionStorage.setItem('splashShown', 'true');
+            initSplash();
+        }
+        
+        function initSplash() {
+            // Preload main app resources in background
+            const appResources = [
+                'index.html',
+                'css/styles.css',
+                'js/app.js'
+                // Add other critical resources
+            ];
+            
+            preloadResources(appResources);
+            
+            // Professional loading messages
+            const loadingMessages = [
+                "Initializing secure trading environment",
+                "Connecting to banking partners",
+                "Authenticating user credentials",
+                "Loading AI prediction models",
+                "Optimizing trading algorithms",
+                "Finalizing security protocols"
+            ];
+            
+            // Simulate professional loading sequence
+            let progress = 0;
+            const progressBar = document.getElementById('progressBar');
+            const loadingText = document.getElementById('loadingText');
+            let currentMessage = 0;
+            
+            function updateProgress() {
+                // Increment progress with realistic variation
+                const increment = 2 + Math.random() * 3;
+                progress = Math.min(progress + increment, 100);
+                
+                progressBar.style.width = progress + '%';
+                
+                // Update loading message at specific intervals
+                const messageThresholds = [15, 30, 45, 60, 75, 90];
+                if (currentMessage < messageThresholds.length && progress >= messageThresholds[currentMessage]) {
+                    loadingText.textContent = loadingMessages[currentMessage];
+                    currentMessage++;
+                }
+                
+                if (progress < 100) {
+                    // Vary timing based on progress
+                    const timing = progress < 30 || progress > 80 ? 100 : 200;
+                    setTimeout(updateProgress, timing + Math.random() * 100);
+                } else {
+                    // Final completion
+                    loadingText.textContent = "Ready to trade";
+                    completeLoading();
+                }
+            }
+            
+            function completeLoading() {
+                // Add slight delay before transition
+                setTimeout(() => {
+                    document.querySelector('.splash-container').style.animation = 'slideUp 0.8s cubic-bezier(0.33, 1, 0.68, 1) forwards';
+                    setTimeout(redirectToApp, 800);
+                }, 500);
+            }
+            
+            // Start loading process
+            setTimeout(updateProgress, 800);
+        }
+        
+        function redirectToApp() {
+            // Use replace() to prevent going back to splash screen
+            window.location.replace('index.html');
+        }
+        
+        function preloadResources(resources) {
+            resources.forEach(resource => {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.href = resource;
+                link.as = resource.endsWith('.css') ? 'style' : 
+                         resource.endsWith('.js') ? 'script' : 'document';
+                document.head.appendChild(link);
+            });
+        }
+        
+        // Check for Telegram authentication
+        if (tg && tg.initData) {
+            console.log('Authenticated user:', tg.initDataUnsafe.user);
+        }
+    </script>
+</body>
+</html>
