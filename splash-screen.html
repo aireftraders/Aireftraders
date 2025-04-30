@@ -14,172 +14,130 @@
       --nigerian-white: #FFFFFF;
     }
 
-    body {
+    body, html {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--light);
-      color: var(--dark);
+      padding: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: var(--light);
       display: flex;
-      justify-content: center;
       align-items: center;
-      min-height: 100vh;
+      justify-content: center;
+      height: 100vh;
       overflow: hidden;
     }
 
     .splash-container {
-      max-width: 400px;
-      padding: 20px;
       text-align: center;
-      animation: fadeIn 0.8s ease-in-out;
+      animation: fadeIn 1.5s ease-in;
+      transition: opacity 1s ease-out;
     }
 
     .logo {
       width: 180px;
-      height: auto;
-      margin: 0 auto 20px;
+      margin-bottom: 20px;
     }
 
     .app-title {
-      font-size: 26px;
+      font-size: 28px;
       font-weight: bold;
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
     }
 
     .app-subtitle {
-      font-size: 15px;
       color: #555;
+      font-size: 16px;
       margin-bottom: 30px;
     }
 
     .loading-bar {
-      width: 100%;
+      width: 80%;
       height: 6px;
-      background: #ddd;
-      border-radius: 4px;
+      background-color: #ddd;
+      margin: 0 auto 20px;
+      border-radius: 3px;
       overflow: hidden;
-      position: relative;
     }
 
-    .progress {
-      width: 0%;
+    .loading-progress {
       height: 100%;
+      width: 0%;
       background: linear-gradient(to right, var(--primary), var(--secondary));
-      animation: progressAnim 2.5s forwards;
+      animation: loadingAnim 3s forwards;
     }
 
-    @keyframes progressAnim {
-      0% { width: 0%; }
-      100% { width: 100%; }
-    }
-
-    .flag {
+    .nigeria-flag {
       display: flex;
-      margin: 25px auto;
       width: 60px;
       height: 40px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      margin: 20px auto;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
-    .flag > div {
+    .flag-part {
       flex: 1;
     }
 
-    .flag .green {
-      background: var(--nigerian-green);
+    .flag-part:nth-child(1),
+    .flag-part:nth-child(3) {
+      background-color: var(--nigerian-green);
     }
 
-    .flag .white {
-      background: var(--nigerian-white);
+    .flag-part:nth-child(2) {
+      background-color: var(--nigerian-white);
     }
 
     .nigeria-text {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--nigerian-green);
-      margin-top: 10px;
-      font-weight: 600;
-    }
-
-    .telegram-auth {
-      margin-top: 30px;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
-    }
-
-    .telegram-auth.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .telegram-button {
-      background: #0088cc;
-      color: #fff;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-size: 16px;
       font-weight: bold;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .telegram-button:hover {
-      background: #007ab8;
+      margin-top: 10px;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
+      from { opacity: 0; transform: translateY(-20px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes loadingAnim {
+      0% { width: 0%; }
+      100% { width: 100%; }
     }
   </style>
 </head>
 <body>
-  <div class="splash-container">
-    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2030%2C%202025%2C%2002_36_32%20AM-1wDDnne5fpylqjmbzveVpRiAKxNNkS.png" alt="AI REF-TRADERS Logo" class="logo" />
+  <div class="splash-container" id="splash">
+    <img
+      src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2030%2C%202025%2C%2002_36_32%20AM-1wDDnne5fpylqjmbzveVpRiAKxNNkS.png"
+      alt="AI REF-TRADERS Logo"
+      class="logo"
+    />
     <h1 class="app-title">AI REF-TRADERS</h1>
     <p class="app-subtitle">Nigeria's #1 AI Trading & Referral Platform</p>
 
     <div class="loading-bar">
-      <div class="progress"></div>
+      <div class="loading-progress"></div>
     </div>
 
-    <div class="flag">
-      <div class="green"></div>
-      <div class="white"></div>
-      <div class="green"></div>
+    <div class="nigeria-flag">
+      <div class="flag-part"></div>
+      <div class="flag-part"></div>
+      <div class="flag-part"></div>
     </div>
     <p class="nigeria-text">Made for Nigerians</p>
-
-    <div class="telegram-auth" id="telegramAuth">
-      <button class="telegram-button" id="telegramLoginBtn">
-        ✈️ Continue with Telegram
-      </button>
-      <p style="font-size: 13px; color: #666;">Secure login with your Telegram account</p>
-    </div>
   </div>
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    // Wait for the loading bar animation to finish, then show Telegram login
-    window.addEventListener('DOMContentLoaded', () => {
-      const authBox = document.getElementById('telegramAuth');
-      setTimeout(() => {
-        authBox.classList.add('show');
-      }, 2500);
-    });
+    // Fade out and redirect after 3.5 seconds
+    setTimeout(() => {
+      const splash = document.getElementById("splash");
+      splash.style.opacity = '0';
 
-    document.getElementById('telegramLoginBtn').addEventListener('click', () => {
-      if (window.TelegramAuth?.login) {
-        TelegramAuth.login();
-      } else {
-        console.log('TelegramAuth not available');
-      }
-    });
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1000); // Wait for fade-out animation
+    }, 3500);
   </script>
 </body>
 </html>
