@@ -1887,82 +1887,318 @@
             }
         }
 
-        // Login functionality with passkey and 2FA
+        // Admin login functionality
         async function adminLogin() {
             const username = document.getElementById('adminUsername').value.trim();
             const password = document.getElementById('adminPassword').value.trim();
-            const passkey = document.getElementById('adminPasskey').value.trim();
-            
-            if (!username && !passkey) {
-                showNotification('Please enter either username/password or passkey.');
+
+            if (!username || !password) {
+                showNotification('Please enter both username and password.');
                 return;
             }
-            
+
             try {
-                let admin;
-                
-                if (passkey) {
-                    // Passkey login
-                    admin = await db.adminCredentials.where('passkey').equals(passkey).first();
-                    if (!admin) {
-                        showNotification('Invalid passkey.');
-                        return;
-                    }
+                const admin = await db.adminCredentials.where('username').equals(username).first();
+                if (admin && admin.password === password) {
+                    // Successful login
+                    document.getElementById('loginContainer').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    document.getElementById('adminUsernameDisplay').textContent = username;
+
+                    // Load admin panel data
+                    await loadAdminPanelData();
                 } else {
-                    // Username/password login
-                    admin = await db.adminCredentials.where('username').equals(username).first();
-                    if (!admin || admin.password !== password) {
-                        showNotification('Invalid username or password.');
-                        return;
-                    }
-                }
-                
-                // Check if 2FA is enabled
-                if (admin.totpSecret) {
-                    // Store temp admin data and show 2FA step
-                    tempAdminData = admin;
-                    document.getElementById('passwordStep').classList.remove('active');
-                    document.getElementById('totpStep').classList.add('active');
-                    
-                    // Clear password fields
-                    document.getElementById('adminPassword').value = '';
-                    
-                    // Focus first TOTP input
-                    document.querySelector('#totpStep .totp-input').focus();
-                } else {
-                    // No 2FA - login directly
-                    completeAdminLogin(admin);
+                    showNotification('Invalid username or password.');
                 }
             } catch (error) {
                 console.error('Error during admin login:', error);
-                showNotification('Error during login. Please try again.');
+                showNotification('An error occurred during login. Please try again.');
             }
         }
 
-        // Verify 2FA code
-        async function verify2FACode() {
+        // Attach login button event listener
+        document.getElementById('adminLoginBtn').addEventListener('click', adminLogin);
+
+        // Back to password step from 2FA step
+        document.getElementById('backToPasswordBtn').addEventListener('click', function () {
+            document.getElementById('totpStep').classList.remove('active');
+            document.getElementById('passwordStep').classList.add('active');
+        });
+
+        // Verify 2FA button
+        document.getElementById('verifyTotpBtn').addEventListener('click', verify2FACode);
+
+        // Logout admin
+        function logoutAdmin() {
+            showConfirmation('Logout', 'Are you sure you want to logout?', (confirmed) => {
+                if (confirmed) {
+                    document.getElementById('loginContainer').style.display = 'block';
+                    document.getElementById('adminPanel').style.display = 'none';
+                }
+            });
+        }
+
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
+
+        // Pagination buttons
+        document.getElementById('prevPageBtn').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                loadUserManagementData();
+            }
+        });
+
+        document.getElementById('nextPageBtn').addEventListener('click', () => {
+            currentPage++;
+            loadUserManagementData();
+        });
+
+        // Save user changes button
+        document.getElementById('saveUserBtn').addEventListener('click', saveUserChanges);
+
+        // Reset user changes button
+        document.getElementById('resetUserBtn').addEventListener('click', () => {
+            if (currentSelectedUserId) {
+                editUser(currentSelectedUserId);
+            }
+        });
+
+        // Process batch button
+        document.getElementById('processBatchBtn').addEventListener('click', processCurrentBatch);
+
+        // Force process batch button
+        document.getElementById('forceProcessBtn').addEventListener('click', forceProcessBatch);
+
+        // Notify eligible users button
+        document.getElementById('notifyEligibleBtn').addEventListener('click', notifyEligibleUsers);
+
+        // Save settings button
+        document.getElementById('saveSettingsBtn').addEventListener('click', saveSystemSettings);
+
+        // Reset settings button
+        document.getElementById('resetSettingsBtn').addEventListener('click', resetSystemSettings);
+
+        // Send announcement button
+        document.getElementById('sendAnnouncementBtn').addEventListener('click', sendAnnouncement);
+
+        // Preview announcement button
+        document.getElementById('previewAnnouncementBtn').addEventListener('click', previewAnnouncement);
+
+        // Send reply button
+        document.getElementById('sendReplyBtn').addEventListener('click', sendTicketReply);
+
+        // Resolve ticket button
+        document.getElementById('resolveTicketBtn').addEventListener('click', resolveTicket);
+
+        // Change security settings button
+        document.getElementById('changeSecurityBtn').addEventListener('click', changeAdminPassword);
+
+        // Confirm 2FA setup button
+        document.getElementById('confirm2FABtn').addEventListener('click', confirm2FASetup);
+
+        // Logout button
+        document.getElementById('logoutBtn').addEventListener('click', logoutAdmin);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
             try {
-                if (!tempAdminData?.totpSecret) {
-                    showNotification('2FA not properly set up.');
-                    return;
-                }
-                
-                const totp = new OTPAuth.TOTP({
-                    secret: OTPAuth.Secret.fromBase32(tempAdminData.totpSecret),
-                    issuer: 'AI REF-TRADERS',
-                    label: tempAdminData.username,
-                    algorithm: 'SHA1',
-                    digits: 6,
-                    period: 30
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                setTheme(savedTheme);
+                initializeAdminPanel();
+
+                // Attach event listeners for tabs
+                const adminTabs = document.querySelectorAll('.admin-tab');
+                adminTabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        console.log(`Tab clicked: ${tab.getAttribute('data-tab')}`); // Debug log
+
+                        // Remove active class from all tabs and contents
+                        adminTabs.forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
+
+                        // Add active class to the clicked tab and corresponding content
+                        tab.classList.add('active');
+                        const tabContentId = `${tab.getAttribute('data-tab')}Tab`;
+                        const tabContent = document.getElementById(tabContentId);
+                        if (tabContent) {
+                            console.log(`Activating tab content: ${tabContentId}`); // Debug log
+                            tabContent.classList.add('active');
+                        } else {
+                            console.error(`Tab content with ID "${tabContentId}" not found.`);
+                        }
+                    });
                 });
-                
-                const enteredCode = Array.from(document.querySelectorAll('#totpStep .totp-input'))
-                    .map(input => input.value)
-                    .join('');
-                
-                if (enteredCode.length !== 6) {
-                    showNotification('Please enter a valid 6-digit code.');
-                    return;
+
+                // Attach event listeners for buttons
+                const adminLoginBtn = document.getElementById('adminLoginBtn');
+                if (adminLoginBtn) {
+                    console.log('adminLoginBtn found'); // Debug log
+                    adminLoginBtn.addEventListener('click', adminLogin);
+                } else {
+                    console.error('adminLoginBtn not found');
                 }
-                
-                const isValid = totp.validate({ token: enteredCode, window: 1 }) !== null;
+
+                const backToPasswordBtn = document.getElementById('backToPasswordBtn');
+                if (backToPasswordBtn) {
+                    console.log('backToPasswordBtn found'); // Debug log
+                    backToPasswordBtn.addEventListener('click', () => {
+                        document.getElementById('totpStep').classList.remove('active');
+                        document.getElementById('passwordStep').classList.add('active');
+                    });
+                } else {
+                    console.error('backToPasswordBtn not found');
+                }
+
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    console.log('logoutBtn found'); // Debug log
+                    logoutBtn.addEventListener('click', logoutAdmin);
+                } else {
+                    console.error('logoutBtn not found');
+                }
+
+                // Add similar checks and logs for other buttons
+                const prevPageBtn = document.getElementById('prevPageBtn');
+                if (prevPageBtn) {
+                    console.log('prevPageBtn found'); // Debug log
+                    prevPageBtn.addEventListener('click', () => {
+                        if (currentPage > 1) {
+                            currentPage--;
+                            loadUserManagementData();
+                        }
+                    });
+                } else {
+                    console.error('prevPageBtn not found');
+                }
+
+                const nextPageBtn = document.getElementById('nextPageBtn');
+                if (nextPageBtn) {
+                    console.log('nextPageBtn found'); // Debug log
+                    nextPageBtn.addEventListener('click', () => {
+                        currentPage++;
+                        loadUserManagementData();
+                    });
+                } else {
+                    console.error('nextPageBtn not found');
+                }
+
+                const saveUserBtn = document.getElementById('saveUserBtn');
+                if (saveUserBtn) {
+                    console.log('saveUserBtn found'); // Debug log
+                    saveUserBtn.addEventListener('click', saveUserChanges);
+                } else {
+                    console.error('saveUserBtn not found');
+                }
+
+                const resetUserBtn = document.getElementById('resetUserBtn');
+                if (resetUserBtn) {
+                    console.log('resetUserBtn found'); // Debug log
+                    resetUserBtn.addEventListener('click', () => {
+                        if (currentSelectedUserId) {
+                            editUser(currentSelectedUserId);
+                        }
+                    });
+                } else {
+                    console.error('resetUserBtn not found');
+                }
+
+                const processBatchBtn = document.getElementById('processBatchBtn');
+                if (processBatchBtn) {
+                    console.log('processBatchBtn found'); // Debug log
+                    processBatchBtn.addEventListener('click', processCurrentBatch);
+                } else {
+                    console.error('processBatchBtn not found');
+                }
+
+                const forceProcessBtn = document.getElementById('forceProcessBtn');
+                if (forceProcessBtn) {
+                    console.log('forceProcessBtn found'); // Debug log
+                    forceProcessBtn.addEventListener('click', forceProcessBatch);
+                } else {
+                    console.error('forceProcessBtn not found');
+                }
+
+                const notifyEligibleBtn = document.getElementById('notifyEligibleBtn');
+                if (notifyEligibleBtn) {
+                    console.log('notifyEligibleBtn found'); // Debug log
+                    notifyEligibleBtn.addEventListener('click', notifyEligibleUsers);
+                } else {
+                    console.error('notifyEligibleBtn not found');
+                }
+
+                const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+                if (saveSettingsBtn) {
+                    console.log('saveSettingsBtn found'); // Debug log
+                    saveSettingsBtn.addEventListener('click', saveSystemSettings);
+                } else {
+                    console.error('saveSettingsBtn not found');
+                }
+
+                const resetSettingsBtn = document.getElementById('resetSettingsBtn');
+                if (resetSettingsBtn) {
+                    console.log('resetSettingsBtn found'); // Debug log
+                    resetSettingsBtn.addEventListener('click', resetSystemSettings);
+                } else {
+                    console.error('resetSettingsBtn not found');
+                }
+
+                const sendAnnouncementBtn = document.getElementById('sendAnnouncementBtn');
+                if (sendAnnouncementBtn) {
+                    console.log('sendAnnouncementBtn found'); // Debug log
+                    sendAnnouncementBtn.addEventListener('click', sendAnnouncement);
+                } else {
+                    console.error('sendAnnouncementBtn not found');
+                }
+
+                const previewAnnouncementBtn = document.getElementById('previewAnnouncementBtn');
+                if (previewAnnouncementBtn) {
+                    console.log('previewAnnouncementBtn found'); // Debug log
+                    previewAnnouncementBtn.addEventListener('click', previewAnnouncement);
+                } else {
+                    console.error('previewAnnouncementBtn not found');
+                }
+
+                const sendReplyBtn = document.getElementById('sendReplyBtn');
+                if (sendReplyBtn) {
+                    console.log('sendReplyBtn found'); // Debug log
+                    sendReplyBtn.addEventListener('click', sendTicketReply);
+                } else {
+                    console.error('sendReplyBtn not found');
+                }
+
+                const resolveTicketBtn = document.getElementById('resolveTicketBtn');
+                if (resolveTicketBtn) {
+                    console.log('resolveTicketBtn found'); // Debug log
+                    resolveTicketBtn.addEventListener('click', resolveTicket);
+                } else {
+                    console.error('resolveTicketBtn not found');
+                }
+
+                const changeSecurityBtn = document.getElementById('changeSecurityBtn');
+                if (changeSecurityBtn) {
+                    console.log('changeSecurityBtn found'); // Debug log
+                    changeSecurityBtn.addEventListener('click', changeAdminPassword);
+                } else {
+                    console.error('changeSecurityBtn not found');
+                }
+
+                const confirm2FABtn = document.getElementById('confirm2FABtn');
+                if (confirm2FABtn) {
+                    console.log('confirm2FABtn found'); // Debug log
+                    confirm2FABtn.addEventListener('click', confirm2FASetup);
+                } else {
+                    console.error('confirm2FABtn not found');
+                }
+            } catch (error) {
+                console.error('Error initializing admin panel:', error);
+                showNotification('An error occurred during initialization. Please refresh the page.');
+            }
+        });
+    </script>
+    <script src="js/admin-fix.js"></script>
+</body>
+</html>

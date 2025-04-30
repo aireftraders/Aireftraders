@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI REF-TRADERS - Loading</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary: #00A651;
+            --secondary: #008753;
+            --dark: #2D3436;
+            --light: #F5F6FA;
+            --success: #00B894;
+            --danger: #D63031;
+            --warning: #FDCB6E;
+            --nigerian-green: #008753;
+            --nigerian-white: #FFFFFF;
+            
+            /* Theme variables */
+            --bg-color: #F5F6FA;
+            --text-color: #2D3436;
+            --card-bg: #FFFFFF;
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0,0,0,0.1);
+        }
+        
+        /* Dark theme variables */
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #E0E0E0;
+            --card-bg: #1E1E1E;
+            --border-color: #333333;
+            --shadow-color: rgba(0,0,0,0.3);
+            --dark: #E0E0E0;
+            --light: #121212;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .splash-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            max-width: 90%;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .logo-container {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .logo {
+            width: 200px;
+            height: auto;
+            filter: drop-shadow(0 4px 8px var(--shadow-color));
+        }
+        
+        .nigeria-badge {
+            background: linear-gradient(to right, var(--nigerian-green) 33%, var(--nigerian-white) 33%, var(--nigerian-white) 66%, var(--nigerian-green) 66%);
+            color: var(--dark);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 2px 10px var(--shadow-color);
+            animation: pulse 2s infinite;
+        }
+        
+        .app-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 20px 0 10px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent; /* Use color instead of text-fill-color */
+}
+        
+        .app-subtitle {
+            font-size: 16px;
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+        
+        .loading-container {
+            width: 80%;
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .loading-bar {
+            height: 6px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .loading-progress {
+            position: absolute;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+            transition: width 0.3s ease-in-out;
+            animation: loadingAnimation 3.5s forwards;
+        }
+        
+        .loading-text {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+            100% { transform: translateX(-50%) scale(1); }
+        }
+        
+        @keyframes loadingAnimation {
+            0% { width: 0%; }
+            20% { width: 20%; }
+            50% { width: 50%; }
+            80% { width: 80%; }
+            100% { width: 100%; }
+        }
+        
+        .powered-by {
+            position: fixed;
+            bottom: 20px;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="splash-container">
+        <div class="logo-container">
+            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2030%2C%202025%2C%2002_36_32%20AM-5bgmzD4SdNQlC87WwPSYrm8q9wiNh2.png" alt="AI REF-TRADERS Logo" class="logo">
+            <div class="nigeria-badge">100% NIGERIAN</div>
+        </div>
+        
+        <h1 class="app-title">AI REF-TRADERS</h1>
+        <p class="app-subtitle">Nigeria's #1 Online Income Platform</p>
+        
+        <div class="loading-container">
+            <div class="loading-bar">
+                <div class="loading-progress" id="loadingProgress"></div>
+            </div>
+            <div class="loading-text" id="loadingText">Initializing application...</div>
+        </div>
+    </div>
+    
+    <div class="powered-by">Powered by Telegram Mini Apps</div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Telegram WebApp
+            const tg = window.Telegram.WebApp;
+            if (tg) {
+                tg.expand();
+            }
+            
+            // Check for dark mode preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+            
+            // Loading text messages
+            const loadingMessages = [
+                "Initializing application...",
+                "Connecting to secure servers...",
+                "Loading user data...",
+                "Preparing your dashboard..."
+            ];
+            
+            let currentMessageIndex = 0;
+            const loadingTextElement = document.getElementById('loadingText');
+            
+            // Update loading text every 800ms
+            const textInterval = setInterval(() => {
+                currentMessageIndex = (currentMessageIndex + 1) % loadingMessages.length;
+                loadingTextElement.textContent = loadingMessages[currentMessageIndex];
+            }, 800);
+            
+            // Redirect to main app after loading animation completes
+            setTimeout(() => {
+                clearInterval(textInterval);
+                loadingTextElement.textContent = "Ready!";
+                
+                // Store authentication data if available
+                if (tg && tg.initData) {
+                    try {
+                        localStorage.setItem('telegramInitData', tg.initData);
+                    } catch (error) {
+                        console.error('Error storing Telegram init data:', error);
+                    }
+                }
+                
+                // Redirect to main app
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 500);
+            }, 3500);
+            
+            // Verify Telegram authentication on load
+            async function verifyTelegramAuth() {
+                if (tg && tg.initData) {
+                    try {
+                        const response = await fetch('/api/telegram/verify', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                initData: tg.initData
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            console.log('Telegram authentication successful');
+                            // Store user data
+                            localStorage.setItem('telegramUser', JSON.stringify(data.user));
+                        } else {
+                            console.error('Telegram authentication failed:', data.message);
+                        }
+                    } catch (error) {
+                        console.error('Error verifying Telegram authentication:', error);
+                    }
+                }
+            }
+            
+            // Verify authentication
+            verifyTelegramAuth();
+        });
+    </script>
+</body>
+</html>

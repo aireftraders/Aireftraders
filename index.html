@@ -1039,20 +1039,27 @@
             font-size: 16px;
         }
 
-        /* Add styles for blinking notification */
-        .notification-indicator {
+        /* Notification Bell Styles */
+        .notification-bell {
             position: fixed;
             top: 10px;
-            right: 60px; /* Adjusted to avoid overlap with language selector */
-            background: red;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: bold;
+            right: 10px;
             z-index: 1200;
-            display: none; /* Hidden by default */
+            font-size: 24px;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .notification-bell .red-dot {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            background: red;
+            border-radius: 50%;
             animation: blink 1s infinite;
+            display: none; /* Hidden by default */
         }
 
         @keyframes blink {
@@ -1080,8 +1087,11 @@
         </select>
     </div>
 
-    <!-- Notification Indicator -->
-    <div id="notificationIndicator" class="notification-indicator">New Notification</div>
+    <!-- Notification Bell -->
+    <div class="notification-bell" id="notificationBell">
+        🔔
+        <div class="red-dot" id="redDot"></div>
+    </div>
 
     <div class="container">
         <div class="app-bar">
@@ -2495,7 +2505,7 @@
             
             // Set up event listeners for buttons
             document.getElementById('copyLink').addEventListener('click', function() {
-                const refLink = `https://t.me/aireftradersng_bot?startref=${tg?.initDataUnsafe?.user?.id || 'demo'}`;
+                const refLink = `https://t.me/AIREFTRADERSbot?start=${tg?.initDataUnsafe?.user?.id || 'demo-user'}`;
                 navigator.clipboard.writeText(refLink).then(() => {
                     showNotification('Referral link copied! Share with your Nigerian friends');
                 });
@@ -2878,6 +2888,85 @@
             if (window.location.pathname.includes('verification-success')) {
                 verifyPayment();
             }
+
+            // Telegram bot referral link
+            const telegramBotLink = 'https://t.me/AIREFTRADERSbot';
+
+            // Function to generate referral link
+            function generateReferralLink(userId) {
+                return `${telegramBotLink}?start=${userId}`;
+            }
+
+            // Example: Update referral link dynamically
+            const userId = tg?.initDataUnsafe?.user?.id;
+            if (!userId) {
+                alert('Unable to retrieve your Telegram user ID. Please open this app inside Telegram.');
+            } else {
+                const referralLink = generateReferralLink(userId);
+
+                // Update referral link in the UI
+                const copyLinkButton = document.getElementById('copyLink');
+                if (copyLinkButton) {
+                    copyLinkButton.addEventListener('click', function () {
+                        navigator.clipboard.writeText(referralLink).then(() => {
+                            showNotification('Referral link copied! Share with your friends.');
+                        });
+                    });
+                }
+
+                // Example: Share referral link on social media
+                function shareReferral(platform) {
+                    let shareUrl = '';
+                    switch (platform) {
+                        case 'whatsapp':
+                            shareUrl = `https://wa.me/?text=${encodeURIComponent(`Join AI REF-TRADERS and start earning today! Use my referral link: ${referralLink}`)}`;
+                            break;
+                        case 'facebook':
+                            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`;
+                            break;
+                        case 'twitter':
+                            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Join AI REF-TRADERS and start earning today! ${referralLink}`)}`;
+                            break;
+                        case 'telegram':
+                            shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Join AI REF-TRADERS and start earning today!')}`;
+                            break;
+                        default:
+                            return;
+                    }
+                    window.open(shareUrl, '_blank');
+                    showNotification(`Sharing to ${platform}...`);
+                }
+
+                // Add event listeners for social media share buttons
+                document.getElementById('shareWhatsApp')?.addEventListener('click', () => shareReferral('whatsapp'));
+                document.getElementById('shareFacebook')?.addEventListener('click', () => shareReferral('facebook'));
+                document.getElementById('shareTwitter')?.addEventListener('click', () => shareReferral('twitter'));
+                document.getElementById('shareTelegram')?.addEventListener('click', () => shareReferral('telegram'));
+            }
+
+            // Track referrals
+            async function trackReferral() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const referrerId = urlParams.get('start');
+                if (referrerId) {
+                    try {
+                        const userId = tg?.initDataUnsafe?.user?.id;
+                        if (userId) {
+                            const user = await db.users.where('telegramId').equals(userId).first();
+                            if (user) {
+                                user.referrer = referrerId;
+                                await db.users.put(user);
+                                showNotification(`You were referred by user ID: ${referrerId}`);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error tracking referral:', error);
+                    }
+                }
+            }
+
+            // Call trackReferral on page load
+            trackReferral();
         });
         
         // Check if user is admin
@@ -2966,7 +3055,7 @@
         
         // Share on social media
         function shareOnSocialMedia(platform) {
-            const refLink = `https://t.me/aireftradersng_bot?startref=${tg?.initDataUnsafe?.user?.id || 'demo'}`;
+            const refLink = `https://t.me/AIREFTRADERSbot?start=${tg?.initDataUnsafe?.user?.id || 'demo-user'}`;
             let shareUrl = '';
             
             switch (platform) {
@@ -3188,20 +3277,158 @@
         // Listen for notifications from admin.html
         window.addEventListener('message', function(event) {
             if (event.data.type === 'adminNotification') {
-                const notificationIndicator = document.getElementById('notificationIndicator');
-                notificationIndicator.style.display = 'block'; // Show the blinking notification
-                notificationIndicator.textContent = event.data.message || 'New Notification';
+                const redDot = document.getElementById('redDot');
+                redDot.style.display = 'block'; // Show the blinking red dot
             }
         });
 
+        // Hide the red dot when the bell is clicked
+        document.getElementById('notificationBell').addEventListener('click', function() {
+            const redDot = document.getElementById('redDot');
+            redDot.style.display = 'none'; // Hide the red dot
+        });
+
         // Example: Simulate receiving a notification from admin.html
-        setTimeout(()=> {
+        setTimeout(() => {
             window.postMessage({ type: 'adminNotification', message: 'Check out the latest updates!' }, '*');
         }, 5000);
+    </script>
+    <script src="js/paystack-integration.js"></script>
+    <script src="js/batch-processing.js"></script>
+    <script src="js/admin-integration.js"></script>
+    <!-- Telegram Authentication Scripts -->
+    <script src="js/telegram-auth.js"></script>
+    <script src="js/auth-check.js"></script>
+    <script src="js/app-init.js"></script>
+    <script>
+        // Telegram authentication utilities
+        const TelegramAuth = {
+            // Initialize Telegram Web App
+            init: function() {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    const tg = window.Telegram.WebApp;
+                    
+                    // Initialize the WebApp
+                    tg.ready();
+                    
+                    // Set theme based on Telegram theme
+                    this.applyTelegramTheme(tg);
+                    
+                    // Return the initialized Telegram WebApp object
+                    return tg;
+                }
+                return null;
+            },
+            
+            // Apply Telegram theme to the app
+            applyTelegramTheme: function(tg) {
+                if (!tg) return;
+                
+                const root = document.documentElement;
+                
+                // Apply theme colors from Telegram WebApp
+                if (tg.colorScheme === 'dark') {
+                    root.setAttribute('data-theme', 'dark');
+                } else {
+                    root.setAttribute('data-theme', 'light');
+                }
+                
+                // Apply specific colors if available
+                if (tg.themeParams) {
+                    const params = tg.themeParams;
+                    
+                    if (params.bg_color) root.style.setProperty('--tg-theme-bg-color', params.bg_color);
+                    if (params.text_color) root.style.setProperty('--tg-theme-text-color', params.text_color);
+                    if (params.hint_color) root.style.setProperty('--tg-theme-hint-color', params.hint_color);
+                    if (params.link_color) root.style.setProperty('--tg-theme-link-color', params.link_color);
+                    if (params.button_color) root.style.setProperty('--tg-theme-button-color', params.button_color);
+                    if (params.button_text_color) root.style.setProperty('--tg-theme-button-text-color', params.button_text_color);
+                }
+            },
+            
+            // Verify Telegram user with backend
+            verifyUser: async function(initData) {
+                try {
+                    const response = await fetch('/api/telegram/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ initData })
+                    });
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error('Error verifying Telegram user:', error);
+                    return { success: false, message: 'Error connecting to server' };
+                }
+            },
+            
+            // Get user data from backend
+            getUserData: async function(initData) {
+                try {
+                    const response = await fetch('/api/telegram/user-data', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-telegram-init-data': initData
+                        }
+                    });
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error('Error getting user data:', error);
+                    return { success: false, message: 'Error connecting to server' };
+                }
+            }
+        };
 
-        // Hide notification indicator when clicked
-        document.getElementById('notificationIndicator').addEventListener('click', function() {
-            this.style.display = 'none'; // Hide the notification
+        // Export the TelegramAuth object
+        window.TelegramAuth = TelegramAuth;
+
+        // Check if user is authenticated
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if Telegram WebApp is available
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                
+                // Check if we have initData
+                if (tg.initData) {
+                    // Verify with backend
+                    TelegramAuth.verifyUser(tg.initData)
+                        .then(response => {
+                            if (response.success) {
+                                console.log('User authenticated:', response.user);
+                                // User is authenticated, continue to app
+                                if (window.location.pathname.includes('splash-screen.html')) {
+                                    window.location.href = 'index.html';
+                                }
+                            } else {
+                                console.error('Authentication failed:', response.message);
+                                // Redirect to splash screen if not already there
+                                if (!window.location.pathname.includes('splash-screen.html')) {
+                                    window.location.href = 'splash-screen.html';
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error during authentication check:', error);
+                            // Redirect to splash screen on error
+                            if (!window.location.pathname.includes('splash-screen.html')) {
+                                window.location.href = 'splash-screen.html';
+                            }
+                        });
+                } else {
+                    console.log('No initData available, user needs to authenticate');
+                    // Redirect to splash screen if not already there
+                    if (!window.location.pathname.includes('splash-screen.html')) {
+                        window.location.href = 'splash-screen.html';
+                    }
+                }
+            } else {
+                console.log('Telegram WebApp not available');
+                // Handle non-Telegram environment
+            }
         });
     </script>
 </body>

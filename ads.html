@@ -556,6 +556,8 @@
                 }, '*');
             }
 
+            notifyIndexPage(); // Notify index.html
+
             if (currentAdCount >= totalAds) {
                 grantAccessAndRedirect();
                 return;
@@ -565,6 +567,13 @@
             document.getElementById('watchAdBtn').textContent = "Watch Ad";
             document.getElementById('watchAdBtn').style.backgroundColor = 'var(--primary)';
             loadAd();
+        }
+
+        function notifyIndexPage() {
+            window.opener.postMessage(
+                { type: 'adsNotification', message: 'You have successfully watched an ad!' },
+                '*'
+            );
         }
 
         function grantAccessAndRedirect() {
