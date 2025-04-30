@@ -3297,79 +3297,26 @@
             // Check if Telegram WebApp is available
             if (window.Telegram && window.Telegram.WebApp) {
                 const tg = window.Telegram.WebApp;
+                tg.expand();
 
-                // Check if we have initData
-                if (tg.initData) {
-                    // Verify with backend
-                    TelegramAuth.verifyUser(tg.initData)
-                        .then(response => {
-                            if (response.success) {
-                                console.log('User authenticated:', response.user);
-                                // Redirect to dashboard if authenticated
-                                if (window.location.pathname.includes('splash-screen.html')) {
-                                    window.location.href = 'index.html';
-                                }
-                            } else {
-                                console.error('Authentication failed:', response.message);
-                                // Redirect to splash screen if not authenticated
-                                if (!window.location.pathname.includes('splash-screen.html')) {
-                                    window.location.href = 'splash-screen.html';
-                                }
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error during authentication check:', error);
-                            // Redirect to splash screen on error
-                            if (!window.location.pathname.includes('splash-screen.html')) {
-                                window.location.href = 'splash-screen.html';
-                            }
-                        });
-                } else {
-                    console.log('No initData available, user needs to authenticate');
-                    // Redirect to splash screen if no initData
-                    if (!window.location.pathname.includes('splash-screen.html')) {
-                        window.location.href = 'splash-screen.html';
-                    }
-                }
+                // Verify authentication
+                TelegramAuth.verifyUser(tg.initData)
+                    .then(response => {
+                        if (!response.success) {
+                            console.error('Authentication failed:', response.message);
+                            // Handle unauthenticated state
+                            alert('Authentication failed. Please try again.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error during authentication check:', error);
+                        // Handle authentication error
+                        alert('Error during authentication. Please try again.');
+                    });
             } else {
-                console.log('Telegram WebApp not available');
+                console.error('Telegram WebApp not available.');
                 // Handle non-Telegram environment
-                if (!window.location.pathname.includes('splash-screen.html')) {
-                    window.location.href = 'splash-screen.html';
-                }
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            // Check if Telegram WebApp is available
-            if (window.Telegram && window.Telegram.WebApp) {
-                const tg = window.Telegram.WebApp;
-
-                // Check if we have initData
-                if (tg.initData) {
-                    // Verify with backend
-                    TelegramAuth.verifyUser(tg.initData)
-                        .then(response => {
-                            if (!response.success) {
-                                console.error('Authentication failed:', response.message);
-                                // Redirect to splash screen if not authenticated
-                                window.location.href = 'splash-screen.html';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error during authentication check:', error);
-                            // Redirect to splash screen on error
-                            window.location.href = 'splash-screen.html';
-                        });
-                } else {
-                    console.log('No initData available, user needs to authenticate');
-                    // Redirect to splash screen if no initData
-                    window.location.href = 'splash-screen.html';
-                }
-            } else {
-                console.log('Telegram WebApp not available');
-                // Redirect to splash screen if Telegram WebApp is not available
-                window.location.href = 'splash-screen.html';
+                alert('Telegram WebApp not available. Please open this app in Telegram.');
             }
         });
     </script>
@@ -3380,170 +3327,5 @@
     <script src="js/telegram-auth.js"></script>
     <script src="js/auth-check.js"></script>
     <script src="js/app-init.js"></script>
-    <script>
-        // Telegram authentication utilities
-        const TelegramAuth = {
-            // Initialize Telegram Web App
-            init: function() {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    const tg = window.Telegram.WebApp;
-                    
-                    // Initialize the WebApp
-                    tg.ready();
-                    
-                    // Set theme based on Telegram theme
-                    this.applyTelegramTheme(tg);
-                    
-                    // Return the initialized Telegram WebApp object
-                    return tg;
-                }
-                return null;
-            },
-            
-            // Apply Telegram theme to the app
-            applyTelegramTheme: function(tg) {
-                if (!tg) return;
-                
-                const root = document.documentElement;
-                
-                // Apply theme colors from Telegram WebApp
-                if (tg.colorScheme === 'dark') {
-                    root.setAttribute('data-theme', 'dark');
-                } else {
-                    root.setAttribute('data-theme', 'light');
-                }
-                
-                // Apply specific colors if available
-                if (tg.themeParams) {
-                    const params = tg.themeParams;
-                    
-                    if (params.bg_color) root.style.setProperty('--tg-theme-bg-color', params.bg_color);
-                    if (params.text_color) root.style.setProperty('--tg-theme-text-color', params.text_color);
-                    if (params.hint_color) root.style.setProperty('--tg-theme-hint-color', params.hint_color);
-                    if (params.link_color) root.style.setProperty('--tg-theme-link-color', params.link_color);
-                    if (params.button_color) root.style.setProperty('--tg-theme-button-color', params.button_color);
-                    if (params.button_text_color) root.style.setProperty('--tg-theme-button-text-color', params.button_text_color);
-                }
-            },
-            
-            // Verify Telegram user with backend
-            verifyUser: async function(initData) {
-                try {
-                    const response = await fetch('/api/telegram/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ initData })
-                    });
-                    
-                    return await response.json();
-                } catch (error) {
-                    console.error('Error verifying Telegram user:', error);
-                    return { success: false, message: 'Error connecting to server' };
-                }
-            },
-            
-            // Get user data from backend
-            getUserData: async function(initData) {
-                try {
-                    const response = await fetch('/api/telegram/user-data', {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'x-telegram-init-data': initData
-                        }
-                    });
-                    
-                    return await response.json();
-                } catch (error) {
-                    console.error('Error getting user data:', error);
-                    return { success: false, message: 'Error connecting to server' };
-                }
-            }
-        };
-
-        // Export the TelegramAuth object
-        window.TelegramAuth = TelegramAuth;
-
-        // Check if user is authenticated
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if Telegram WebApp is available
-            if (window.Telegram && window.Telegram.WebApp) {
-                const tg = window.Telegram.WebApp;
-                
-                // Check if we have initData
-                if (tg.initData) {
-                    // Verify with backend
-                    TelegramAuth.verifyUser(tg.initData)
-                        .then(response => {
-                            if (response.success) {
-                                console.log('User authenticated:', response.user);
-                                // User is authenticated, continue to app
-                                if (window.location.pathname.includes('splash-screen.html')) {
-                                    window.location.href = 'index.html';
-                                }
-                            } else {
-                                console.error('Authentication failed:', response.message);
-                                // Redirect to splash screen if not already there
-                                if (!window.location.pathname.includes('splash-screen.html')) {
-                                    window.location.href = 'splash-screen.html';
-                                }
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error during authentication check:', error);
-                            // Redirect to splash screen on error
-                            if (!window.location.pathname.includes('splash-screen.html')) {
-                                window.location.href = 'splash-screen.html';
-                            }
-                        });
-                } else {
-                    console.log('No initData available, user needs to authenticate');
-                    // Redirect to splash screen if not already there
-                    if (!window.location.pathname.includes('splash-screen.html')) {
-                        window.location.href = 'splash-screen.html';
-                    }
-                }
-            } else {
-                console.log('Telegram WebApp not available');
-                // Handle non-Telegram environment
-            }
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Check if Telegram WebApp is available
-            if (window.Telegram && window.Telegram.WebApp) {
-                const tg = window.Telegram.WebApp;
-
-                // Check if we have initData
-                if (tg.initData) {
-                    // Verify with backend
-                    TelegramAuth.verifyUser(tg.initData)
-                        .then(response => {
-                            if (!response.success) {
-                                console.error('Authentication failed:', response.message);
-                                // Redirect to splash screen if not authenticated
-                                window.location.href = 'splash-screen.html';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error during authentication check:', error);
-                            // Redirect to splash screen on error
-                            window.location.href = 'splash-screen.html';
-                        });
-                } else {
-                    console.log('No initData available, user needs to authenticate');
-                    // Redirect to splash screen if no initData
-                    window.location.href = 'splash-screen.html';
-                }
-            } else {
-                console.log('Telegram WebApp not available');
-                // Redirect to splash screen if Telegram WebApp is not available
-                window.location.href = 'splash-screen.html';
-            }
-        });
-    </script>
 </body>
 </html>
