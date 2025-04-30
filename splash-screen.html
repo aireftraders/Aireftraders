@@ -294,6 +294,25 @@
         });
     </script>
     
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Initialize Telegram WebApp
+            const tg = window.Telegram.WebApp;
+            if (tg) {
+                tg.expand();
+            }
+
+            // Verify authentication
+            const isAuthenticated = await TelegramAuth.verifyAuth();
+            if (isAuthenticated) {
+                console.log('User authenticated. Redirecting to dashboard.');
+                window.location.href = 'index.html';
+            } else {
+                console.log('User not authenticated. Staying on splash screen.');
+            }
+        });
+    </script>
+    
     <!-- Load auth-check after our custom script -->
     <script src="js/auth-check.js"></script>
     <script src="js/app-init.js"></script>
