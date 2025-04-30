@@ -3,874 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video/GIF Converter & Resizer</title>
+    <title>Video/GIF Converter</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-        }
-        .container {
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         .upload-area {
             border: 2px dashed #3498db;
-            border-radius: 5px;
             padding: 30px;
             text-align: center;
             margin-bottom: 20px;
             cursor: pointer;
-            transition: all 0.3s;
         }
-        .upload-area:hover {
-            background-color: #f0f8ff;
-            border-color: #2980b9;
-        }
-        .upload-area.active {
-            background-color: #e1f0fa;
-            border-color: #2980b9;
-        }
-        #fileInput {
-            display: none;
-        }
-        .preview {
+        #preview {
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             margin: 20px 0;
-            flex-wrap: wrap;
         }
-        .preview-item {
-            text-align: center;
-            margin: 10px;
-        }
-        .preview-item h3 {
-            margin-top: 0;
-            color: #2c3e50;
-        }
-        .preview-media {
+        #preview video, #preview img {
             max-width: 300px;
             max-height: 200px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        video.preview-media {
-            background-color: #000;
         }
         .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
             margin-bottom: 20px;
         }
-        .control-group {
-            flex: 1;
-            min-width: 200px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        input, select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
         button {
-            background-color: #3498db;
+            padding: 10px 15px;
+            background: #3498db;
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-        button:hover {
-            background-color: #2980b9;
         }
         button:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
+            background: #cccccc;
         }
-        .status {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 4px;
-            display: none;
-        }
-        .status.success {
-            background-color: #d4edda;
-            color: #155724;
-            display: block;
-        }
-        .status.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            display: block;
-        }
-        .progress-container {
-            width: 100%;
-            background-color: #f1f1f1;
-            border-radius: 4px;
+        #progress {
             margin-top: 10px;
             display: none;
-        }
-        #progressBar {
-            width: 0%;
-            height: 20px;
-            background-color: #4CAF50;
-            border-radius: 4px;
-            text-align: center;
-            line-height: 20px;
-            color: white;
-        }
-        .format-options {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .format-option {
-            display: flex;
-            align-items: center;
-        }
-        .format-option input {
-            width: auto;
-            margin-right: 5px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Video/GIF Converter & Resizer</h1>
-        
-        <div class="upload-area" id="uploadArea">
-            <h2>Upload Video or GIF</h2>
-            <p>Drag & drop your file here or click to browse</p>
-            <p>Supported formats: MP4, WebM, GIF, MOV, AVI</p>
-            <input type="file" id="fileInput" accept="video/*,image/gif">
+    <h1>Video/GIF Converter</h1>
+    
+    <div class="upload-area" id="uploadArea">
+        <h2>Upload File</h2>
+        <p>Drag & drop or click to select</p>
+        <p>Supports: MP4, WebM, GIF</p>
+        <input type="file" id="fileInput" accept="video/*,image/gif" style="display:none;">
+    </div>
+    
+    <div class="controls">
+        <div>
+            <label>Output Format:</label>
+            <select id="outputFormat">
+                <option value="gif">GIF</option>
+                <option value="mp4">MP4</option>
+                <option value="webm">WebM</option>
+            </select>
         </div>
-        
-        <div class="controls">
-            <div class="control-group">
-                <label for="width">Width (px)</label>
-                <input type="number" id="width" placeholder="e.g. 640" min="1">
-            </div>
-            <div class="control-group">
-                <label for="height">Height (px)</label>
-                <input type="number" id="height" placeholder="e.g. 360" min="1">
-            </div>
-            <div class="control-group">
-                <label for="quality">Quality</label>
+        <div>
+            <label>Width: <input type="number" id="width" placeholder="auto"></label>
+            <label>Height: <input type="number" id="height" placeholder="auto"></label>
+        </div>
+        <div>
+            <label>Quality: 
                 <select id="quality">
+                    <option value="0.7">Medium</option>
                     <option value="1">High</option>
-                    <option value="0.8" selected>Medium</option>
-                    <option value="0.6">Low</option>
+                    <option value="0.4">Low</option>
                 </select>
-            </div>
+            </label>
         </div>
-        
-        <div class="control-group">
-            <label>Output Format</label>
-            <div class="format-options">
-                <div class="format-option">
-                    <input type="radio" id="formatGif" name="outputFormat" value="gif" checked>
-                    <label for="formatGif">GIF</label>
-                </div>
-                <div class="format-option">
-                    <input type="radio" id="formatMp4" name="outputFormat" value="mp4">
-                    <label for="formatMp4">MP4</label>
-                </div>
-                <div class="format-option">
-                    <input type="radio" id="formatWebm" name="outputFormat" value="webm">
-                    <label for="formatWebm">WebM</label>
-                </div>
-            </div>
+    </div>
+    
+    <button id="convertBtn" disabled>Convert</button>
+    <button id="downloadBtn" disabled>Download</button>
+    
+    <div id="progress">Processing... <progress value="0" max="100"></progress></div>
+    
+    <div id="preview">
+        <div>
+            <h3>Original</h3>
+            <video id="originalVideo" controls style="display:none;"></video>
+            <img id="originalImage" style="display:none;">
         </div>
-        
-        <button id="convertBtn" disabled>Convert & Resize</button>
-        <button id="downloadBtn" disabled>Download Result</button>
-        
-        <div class="progress-container" id="progressContainer">
-            <div id="progressBar">0%</div>
+        <div>
+            <h3>Converted</h3>
+            <video id="convertedVideo" controls style="display:none;"></video>
+            <img id="convertedImage" style="display:none;">
         </div>
-        
-        <div class="preview">
-            <div class="preview-item">
-                <h3>Original File</h3>
-                <video id="originalVideo" class="preview-media" controls style="display:none;"></video>
-                <img id="originalGif" class="preview-media" src="" alt="Original GIF" style="display:none;">
-                <p id="originalInfo"></p>
-            </div>
-            <div class="preview-item">
-                <h3>Converted File</h3>
-                <video id="convertedVideo" class="preview-media" controls style="display:none;"></video>
-                <img id="convertedGif" class="preview-media" src="" alt="Converted GIF" style="display:none;">
-                <p id="convertedInfo"></p>
-            </div>
-        </div>
-        
-        <div class="status" id="status"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const fileInput = document.getElementById('fileInput');
             const uploadArea = document.getElementById('uploadArea');
             const originalVideo = document.getElementById('originalVideo');
-            const originalGif = document.getElementById('originalGif');
+            const originalImage = document.getElementById('originalImage');
             const convertedVideo = document.getElementById('convertedVideo');
-            const convertedGif = document.getElementById('convertedGif');
-            const originalInfo = document.getElementById('originalInfo');
-            const convertedInfo = document.getElementById('convertedInfo');
+            const convertedImage = document.getElementById('convertedImage');
             const convertBtn = document.getElementById('convertBtn');
             const downloadBtn = document.getElementById('downloadBtn');
+            const outputFormat = document.getElementById('outputFormat');
             const widthInput = document.getElementById('width');
             const heightInput = document.getElementById('height');
             const qualityInput = document.getElementById('quality');
-            const formatOptions = document.getElementsByName('outputFormat');
-            const statusDiv = document.getElementById('status');
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
+            const progress = document.getElementById('progress');
             
             let originalFile = null;
-            let convertedFileUrl = null;
+            let convertedBlob = null;
             let isVideo = false;
-            let frames = [];
-            let delay = 0;
-            
-            // Handle drag and drop
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.classList.add('active');
-            });
-            
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.classList.remove('active');
-            });
-            
+
+            // File selection
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', (e) => e.preventDefault());
             uploadArea.addEventListener('drop', (e) => {
                 e.preventDefault();
-                uploadArea.classList.remove('active');
                 if (e.dataTransfer.files.length) {
                     fileInput.files = e.dataTransfer.files;
                     handleFileSelect(e.dataTransfer.files[0]);
                 }
             });
-            
-            uploadArea.addEventListener('click', () => {
-                fileInput.click();
-            });
-            
             fileInput.addEventListener('change', () => {
-                if (fileInput.files.length) {
-                    handleFileSelect(fileInput.files[0]);
-                }
+                if (fileInput.files.length) handleFileSelect(fileInput.files[0]);
             });
-            
+
             function handleFileSelect(file) {
-                // Reset previous state
+                originalFile = file;
+                isVideo = file.type.startsWith('video/');
+                
+                // Reset displays
                 originalVideo.style.display = 'none';
-                originalGif.style.display = 'none';
+                originalImage.style.display = 'none';
                 convertedVideo.style.display = 'none';
-                convertedGif.style.display = 'none';
+                convertedImage.style.display = 'none';
                 downloadBtn.disabled = true;
                 
-                // Check file type
-                if (!file.type.match('video/*') && !file.type.match('image/gif')) {
-                    showStatus('Please upload a video (MP4, WebM) or GIF file', 'error');
-                    return;
+                const url = URL.createObjectURL(file);
+                
+                if (isVideo) {
+                    originalVideo.src = url;
+                    originalVideo.style.display = 'block';
+                    originalVideo.onloadedmetadata = () => {
+                        widthInput.placeholder = originalVideo.videoWidth;
+                        heightInput.placeholder = originalVideo.videoHeight;
+                    };
+                } else {
+                    originalImage.src = url;
+                    originalImage.style.display = 'block';
+                    originalImage.onload = () => {
+                        widthInput.placeholder = originalImage.naturalWidth;
+                        heightInput.placeholder = originalImage.naturalHeight;
+                    };
                 }
                 
-                originalFile = file;
-                originalInfo.textContent = `Name: ${file.name}\nSize: ${formatBytes(file.size)}\nType: ${file.type}`;
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    if (file.type.match('image/gif')) {
-                        isVideo = false;
-                        originalGif.src = e.target.result;
-                        originalGif.style.display = 'block';
-                    } else {
-                        isVideo = true;
-                        originalVideo.src = URL.createObjectURL(file);
-                        originalVideo.style.display = 'block';
-                    }
-                    convertBtn.disabled = false;
-                    showStatus('File loaded successfully. Set your options and click "Convert & Resize"', 'success');
-                };
-                reader.readAsDataURL(file);
+                convertBtn.disabled = false;
             }
-            
-            convertBtn.addEventListener('click', async function() {
+
+            // Conversion
+            convertBtn.addEventListener('click', async () => {
                 if (!originalFile) return;
                 
-                const width = parseInt(widthInput.value) || (isVideo ? originalVideo.videoWidth : originalGif.naturalWidth);
-                const height = parseInt(heightInput.value) || (isVideo ? originalVideo.videoHeight : originalGif.naturalHeight);
-                const quality = parseFloat(qualityInput.value) || 0.8;
-                const outputFormat = document.querySelector('input[name="outputFormat"]:checked').value;
+                const format = outputFormat.value;
+                const width = widthInput.value || (isVideo ? originalVideo.videoWidth : originalImage.naturalWidth);
+                const height = heightInput.value || (isVideo ? originalVideo.videoHeight : originalImage.naturalHeight);
+                const quality = qualityInput.value;
                 
-                if (width <= 0 || height <= 0) {
-                    showStatus('Please enter valid dimensions', 'error');
-                    return;
-                }
+                progress.style.display = 'block';
+                convertBtn.disabled = true;
                 
                 try {
-                    convertBtn.disabled = true;
-                    progressContainer.style.display = 'block';
-                    progressBar.style.width = '0%';
-                    progressBar.textContent = '0%';
-                    
-                    if (isVideo) {
-                        // Handle video conversion
-                        await convertVideo(width, height, quality, outputFormat);
+                    if (format === 'gif') {
+                        convertedBlob = await convertToGif(width, height, quality);
+                        convertedImage.src = URL.createObjectURL(convertedBlob);
+                        convertedImage.style.display = 'block';
                     } else {
-                        // Handle GIF conversion
-                        await convertGif(width, height, quality, outputFormat);
+                        convertedBlob = await convertToVideo(format, width, height, quality);
+                        convertedVideo.src = URL.createObjectURL(convertedBlob);
+                        convertedVideo.style.display = 'block';
                     }
                     
                     downloadBtn.disabled = false;
-                    convertBtn.disabled = false;
-                    progressContainer.style.display = 'none';
                 } catch (error) {
-                    console.error('Error processing file:', error);
-                    showStatus('Error processing file: ' + error.message, 'error');
-                    convertBtn.disabled = false;
-                    progressContainer.style.display = 'none';
+                    alert('Conversion failed: ' + error.message);
                 }
+                
+                progress.style.display = 'none';
+                convertBtn.disabled = false;
             });
-            
-            async function convertVideo(width, height, quality, outputFormat) {
-                return new Promise((resolve, reject) => {
-                    // Create a canvas to capture video frames
-                    const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    
-                    // Set up media recorder
-                    let mediaRecorder;
-                    const chunks = [];
-                    
-                    originalVideo.addEventListener('loadedmetadata', function() {
-                        originalVideo.currentTime = 0;
-                    }, { once: true });
-                    
-                    originalVideo.addEventListener('seeked', function() {
-                        // Draw video frame to canvas
-                        ctx.drawImage(originalVideo, 0, 0, width, height);
-                        
-                        if (!mediaRecorder) {
-                            // Initialize media recorder on first frame
-                            const stream = canvas.captureStream();
-                            let mimeType;
-                            switch(outputFormat) {
-                                case 'mp4': mimeType = 'video/mp4; codecs="avc1.42E01E"'; break;
-                                case 'webm': mimeType = 'video/webm; codecs="vp9"'; break;
-                                case 'gif': 
-                                default: 
-                                    mimeType = 'video/webm'; // We'll convert to GIF later
-                            }
-                            
-                            try {
-                                mediaRecorder = new MediaRecorder(stream, {
-                                    mimeType: mimeType,
-                                    videoBitsPerSecond: 1000000 * quality
-                                });
-                                
-                                mediaRecorder.ondataavailable = function(e) {
-                                    chunks.push(e.data);
-                                };
-                                
-                                mediaRecorder.onstop = async function() {
-                                    const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
-                                    
-                                    if (outputFormat === 'gif') {
-                                        // Convert WebM to GIF
-                                        await convertWebMToGif(blob, width, height, quality);
-                                    } else {
-                                        // For MP4/WebM output
-                                        convertedFileUrl = URL.createObjectURL(blob);
-                                        convertedVideo.src = convertedFileUrl;
-                                        convertedVideo.style.display = 'block';
-                                        convertedInfo.textContent = `Size: ${formatBytes(blob.size)} | ${width}x${height} | ${outputFormat.toUpperCase()}`;
-                                        showStatus('Conversion complete! Click "Download Result" to save it.', 'success');
-                                    }
-                                    resolve();
-                                };
-                                
-                                mediaRecorder.start(100); // Capture every 100ms
-                                
-                                // Start capturing frames
-                                captureVideoFrames(originalVideo, canvas, mediaRecorder, function(progress) {
-                                    progressBar.style.width = `${progress}%`;
-                                    progressBar.textContent = `${progress}%`;
-                                }, function() {
-                                    mediaRecorder.stop();
-                                });
-                            } catch (e) {
-                                console.error('MediaRecorder error:', e);
-                                // Fallback to canvas capture for GIF
-                                if (outputFormat === 'gif') {
-                                    captureVideoFramesToGif(originalVideo, canvas, width, height, quality)
-                                        .then(resolve)
-                                        .catch(reject);
-                                } else {
-                                    reject(new Error('This browser doesn\'t support the selected output format'));
-                                }
-                            }
-                        }
-                    });
-                });
-            }
-            
-            function captureVideoFrames(video, canvas, mediaRecorder, progressCallback, completeCallback) {
-                const duration = video.duration;
-                const fps = 10; // Target FPS for output
-                const interval = 1 / fps;
-                let currentTime = 0;
-                let framesCaptured = 0;
-                const totalFrames = Math.floor(duration * fps);
-                
-                function captureFrame() {
-                    if (currentTime >= duration || framesCaptured >= totalFrames) {
-                        completeCallback();
-                        return;
-                    }
-                    
-                    video.currentTime = currentTime;
-                    currentTime += interval;
-                    framesCaptured++;
-                    
-                    const progress = Math.min(100, Math.round((currentTime / duration) * 100));
-                    progressCallback(progress);
-                }
-                
-                // We use seeked event to know when frame is ready
-                video.addEventListener('seeked', function onSeeked() {
-                    captureFrame();
-                }, { once: true });
-                
-                // Start the process
-                captureFrame();
-            }
-            
-            async function captureVideoFramesToGif(video, canvas, width, height, quality) {
-                const duration = video.duration;
-                const fps = 10; // Target FPS for GIF
-                const interval = 1 / fps;
-                let currentTime = 0;
-                let frames = [];
-                const totalFrames = Math.floor(duration * fps);
-                
-                const gif = new GIF({
-                    workers: 2,
-                    quality: Math.round(10 * quality),
-                    width: width,
-                    height: height,
-                    workerScript: 'https://cdn.jsdelivr.net/npm/gif.js/dist/gif.worker.js'
-                });
+
+            async function convertToGif(width, height, quality) {
+                // Load gif.js dynamically
+                const gifjs = await loadScript('https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js');
                 
                 return new Promise((resolve) => {
-                    function captureFrame() {
-                        if (currentTime >= duration || frames.length >= totalFrames) {
-                            gif.render();
-                            return;
-                        }
-                        
-                        video.currentTime = currentTime;
-                        currentTime += interval;
-                        
-                        const progress = Math.min(100, Math.round((currentTime / duration) * 100));
-                        progressBar.style.width = `${progress}%`;
-                        progressBar.textContent = `${progress}%`;
-                    }
-                    
-                    // We use seeked event to know when frame is ready
-                    video.addEventListener('seeked', function onSeeked() {
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(video, 0, 0, width, height);
-                        gif.addFrame(canvas, {delay: interval * 1000, copy: true});
-                        captureFrame();
-                    }, { once: true });
-                    
-                    gif.on('finished', function(blob) {
-                        convertedFileUrl = URL.createObjectURL(blob);
-                        convertedGif.src = convertedFileUrl;
-                        convertedGif.style.display = 'block';
-                        convertedInfo.textContent = `Size: ${formatBytes(blob.size)} | ${width}x${height} | GIF`;
-                        showStatus('Conversion complete! Click "Download Result" to save it.', 'success');
-                        resolve();
-                    });
-                    
-                    // Start the process
-                    captureFrame();
-                });
-            }
-            
-            async function convertWebMToGif(webmBlob, width, height, quality) {
-                // This is a simplified version - in a real app you'd want to use a more robust solution
-                const videoUrl = URL.createObjectURL(webmBlob);
-                const video = document.createElement('video');
-                video.src = videoUrl;
-                
-                await new Promise((resolve) => {
-                    video.onloadedmetadata = resolve;
-                });
-                
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                
-                const gif = new GIF({
-                    workers: 2,
-                    quality: Math.round(10 * quality),
-                    width: width,
-                    height: height,
-                    workerScript: 'https://cdn.jsdelivr.net/npm/gif.js/dist/gif.worker.js'
-                });
-                
-                const duration = video.duration;
-                const fps = 10;
-                const interval = 1 / fps;
-                let currentTime = 0;
-                const totalFrames = Math.floor(duration * fps);
-                let framesProcessed = 0;
-                
-                return new Promise((resolve) => {
-                    function captureFrame() {
-                        if (currentTime >= duration || framesProcessed >= totalFrames) {
-                            gif.render();
-                            return;
-                        }
-                        
-                        video.currentTime = currentTime;
-                        currentTime += interval;
-                    }
-                    
-                    video.addEventListener('seeked', function() {
-                        ctx.drawImage(video, 0, 0, width, height);
-                        gif.addFrame(canvas, {delay: interval * 1000, copy: true});
-                        
-                        framesProcessed++;
-                        const progress = Math.min(100, Math.round((currentTime / duration) * 100));
-                        progressBar.style.width = `${progress}%`;
-                        progressBar.textContent = `${progress}%`;
-                        
-                        captureFrame();
-                    });
-                    
-                    gif.on('finished', function(blob) {
-                        convertedFileUrl = URL.createObjectURL(blob);
-                        convertedGif.src = convertedFileUrl;
-                        convertedGif.style.display = 'block';
-                        convertedInfo.textContent = `Size: ${formatBytes(blob.size)} | ${width}x${height} | GIF`;
-                        showStatus('Conversion complete! Click "Download Result" to save it.', 'success');
-                        resolve();
-                    });
-                    
-                    captureFrame();
-                });
-            }
-            
-            async function convertGif(width, height, quality, outputFormat) {
-                if (outputFormat === 'gif') {
-                    // Parse the original GIF to get frames
-                    const gifData = await parseGif(originalFile);
-                    frames = gifData.frames;
-                    delay = gifData.delay;
-                    
-                    // Create a new GIF with the resized frames
                     const gif = new GIF({
                         workers: 2,
-                        quality: Math.round(10 * quality),
+                        quality: quality * 10,
                         width: width,
                         height: height,
                         workerScript: 'https://cdn.jsdelivr.net/npm/gif.js/dist/gif.worker.js'
                     });
                     
-                    let processedFrames = 0;
-                    
-                    for (let i = 0; i < frames.length; i++) {
-                        const frame = frames[i];
-                        const img = new Image();
-                        img.src = frame.imageData;
+                    if (isVideo) {
+                        // Convert video to GIF frames
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
                         
-                        await new Promise((resolve) => {
-                            img.onload = function() {
-                                const canvas = document.createElement('canvas');
-                                canvas.width = width;
-                                canvas.height = height;
-                                const ctx = canvas.getContext('2d');
-                                
-                                // Draw the image with the new dimensions
-                                ctx.drawImage(img, 0, 0, width, height);
-                                
-                                // Add the frame to the new GIF
-                                gif.addFrame(canvas, {delay: frame.delay || delay, copy: true});
-                                
-                                processedFrames++;
-                                const progress = Math.round((processedFrames / frames.length) * 100);
-                                progressBar.style.width = `${progress}%`;
-                                progressBar.textContent = `${progress}%`;
-                                
-                                resolve();
-                            };
+                        const duration = originalVideo.duration;
+                        const fps = 10; // Target FPS
+                        const interval = 1 / fps;
+                        let currentTime = 0;
+                        
+                        function captureFrame() {
+                            if (currentTime >= duration) {
+                                gif.render();
+                                return;
+                            }
+                            
+                            originalVideo.currentTime = currentTime;
+                            currentTime += interval;
+                            
+                            const progress = (currentTime / duration) * 100;
+                            progress.querySelector('progress').value = progress;
+                        }
+                        
+                        originalVideo.addEventListener('seeked', function() {
+                            ctx.drawImage(originalVideo, 0, 0, width, height);
+                            gif.addFrame(canvas, {delay: interval * 1000, copy: true});
+                            captureFrame();
+                        });
+                        
+                        gif.on('finished', function(blob) {
+                            resolve(blob);
+                        });
+                        
+                        captureFrame();
+                    } else {
+                        // Convert image to GIF (single frame)
+                        const img = new Image();
+                        img.src = originalImage.src;
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            gif.addFrame(canvas, {delay: 100});
+                            gif.render();
+                        };
+                        
+                        gif.on('finished', function(blob) {
+                            resolve(blob);
                         });
                     }
-                    
-                    return new Promise((resolve) => {
-                        gif.on('finished', function(blob) {
-                            convertedFileUrl = URL.createObjectURL(blob);
-                            convertedGif.src = convertedFileUrl;
-                            convertedGif.style.display = 'block';
-                            convertedInfo.textContent = `Size: ${formatBytes(blob.size)} | ${width}x${height} | GIF`;
-                            showStatus('Conversion complete! Click "Download Result" to save it.', 'success');
-                            resolve();
-                        });
-                        
-                        gif.render();
-                    });
-                } else {
-                    // Convert GIF to video format
-                    const frames = await extractGifFrames(originalFile);
+                });
+            }
+
+            async function convertToVideo(format, width, height, quality) {
+                if (!isVideo && format !== 'gif') {
+                    // Convert image to video
                     const canvas = document.createElement('canvas');
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     
-                    // Set up media recorder
-                    let mediaRecorder;
-                    const chunks = [];
+                    const img = new Image();
+                    img.src = originalImage.src;
+                    await new Promise((resolve) => { img.onload = resolve; });
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
                     const stream = canvas.captureStream();
-                    let mimeType;
+                    return await recordStream(stream, format, quality);
+                } else {
+                    // Convert video to different format
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
                     
-                    switch(outputFormat) {
-                        case 'mp4': mimeType = 'video/mp4; codecs="avc1.42E01E"'; break;
-                        case 'webm': 
-                        default: 
-                            mimeType = 'video/webm; codecs="vp9"';
-                    }
+                    const stream = canvas.captureStream();
+                    const recorder = new MediaRecorder(stream, {
+                        mimeType: format === 'mp4' ? 'video/mp4' : 'video/webm',
+                        videoBitsPerSecond: 1000000 * quality
+                    });
                     
-                    try {
-                        mediaRecorder = new MediaRecorder(stream, {
-                            mimeType: mimeType,
-                            videoBitsPerSecond: 1000000 * quality
-                        });
+                    originalVideo.currentTime = 0;
+                    const duration = originalVideo.duration;
+                    const fps = 25;
+                    const interval = 1 / fps;
+                    let currentTime = 0;
+                    
+                    const chunks = [];
+                    recorder.ondataavailable = (e) => chunks.push(e.data);
+                    
+                    return new Promise((resolve) => {
+                        recorder.start(100);
                         
-                        mediaRecorder.ondataavailable = function(e) {
-                            chunks.push(e.data);
-                        };
-                        
-                        mediaRecorder.onstop = function() {
-                            const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
-                            convertedFileUrl = URL.createObjectURL(blob);
-                            convertedVideo.src = convertedFileUrl;
-                            convertedVideo.style.display = 'block';
-                            convertedInfo.textContent = `Size: ${formatBytes(blob.size)} | ${width}x${height} | ${outputFormat.toUpperCase()}`;
-                            showStatus('Conversion complete! Click "Download Result" to save it.', 'success');
-                            resolve();
-                        };
-                        
-                        mediaRecorder.start(100); // Capture every 100ms
-                        
-                        // Process each frame
-                        let currentFrame = 0;
-                        const processNextFrame = () => {
-                            if (currentFrame >= frames.length) {
-                                mediaRecorder.stop();
+                        function captureFrame() {
+                            if (currentTime >= duration) {
+                                recorder.stop();
                                 return;
                             }
                             
-                            const frame = frames[currentFrame];
-                            const img = new Image();
-                            img.src = frame.imageData;
+                            originalVideo.currentTime = currentTime;
+                            currentTime += interval;
                             
-                            img.onload = function() {
-                                ctx.drawImage(img, 0, 0, width, height);
-                                currentFrame++;
-                                const progress = Math.round((currentFrame / frames.length) * 100);
-                                progressBar.style.width = `${progress}%`;
-                                progressBar.textContent = `${progress}%`;
-                                setTimeout(processNextFrame, 50); // Small delay to allow encoding
-                            };
+                            const progress = (currentTime / duration) * 100;
+                            progress.querySelector('progress').value = progress;
+                        }
+                        
+                        originalVideo.addEventListener('seeked', function() {
+                            ctx.drawImage(originalVideo, 0, 0, width, height);
+                            captureFrame();
+                        });
+                        
+                        recorder.onstop = () => {
+                            resolve(new Blob(chunks, {type: format === 'mp4' ? 'video/mp4' : 'video/webm'}));
                         };
                         
-                        processNextFrame();
-                    } catch (e) {
-                        console.error('MediaRecorder error:', e);
-                        throw new Error('This browser doesn\'t support the selected output format');
-                    }
+                        captureFrame();
+                    });
                 }
             }
-            
-            function extractGifFrames(file) {
+
+            function recordStream(stream, format, quality) {
                 return new Promise((resolve) => {
-                    parseGif(file).then(resolve);
-                });
-            }
-            
-            function parseGif(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const arrayBuffer = e.target.result;
-                        const byteArray = new Uint8Array(arrayBuffer);
-                        
-                        // Simple GIF parser to extract frames
-                        try {
-                            const frames = [];
-                            let delay = 100; // default delay in ms
-                            let pos = 0;
-                            
-                            // Check GIF header (GIF89a or GIF87a)
-                            const header = String.fromCharCode.apply(null, byteArray.subarray(0, 6));
-                            if (header !== 'GIF89a' && header !== 'GIF87a') {
-                                throw new Error('Invalid GIF file');
-                            }
-                            
-                            pos += 6; // skip header
-                            
-                            // Skip logical screen descriptor (7 bytes)
-                            pos += 7;
-                            
-                            // Check for global color table
-                            const packed = byteArray[pos - 1];
-                            const globalColorTableFlag = (packed & 0x80) !== 0;
-                            const globalColorTableSize = 2 << (packed & 0x07);
-                            
-                            if (globalColorTableFlag) {
-                                pos += 3 * globalColorTableSize; // skip global color table
-                            }
-                            
-                            // Process blocks
-                            while (pos < byteArray.length) {
-                                const blockType = byteArray[pos++];
-                                
-                                if (blockType === 0x3B) { // Trailer (end of GIF)
-                                    break;
-                                } else if (blockType === 0x21) { // Extension block
-                                    const extensionType = byteArray[pos++];
-                                    const blockSize = byteArray[pos++];
-                                    
-                                    if (extensionType === 0xF9) { // Graphics Control Extension
-                                        // Skip block size (always 4)
-                                        pos++;
-                                        
-                                        const packedFields = byteArray[pos++];
-                                        delay = (byteArray[pos++] | (byteArray[pos++] << 8)) * 10; // in ms
-                                        pos++; // transparent color index
-                                        
-                                        // Skip block terminator
-                                        pos++;
-                                    } else {
-                                        // Skip other extension blocks
-                                        pos += blockSize;
-                                        while (byteArray[pos] !== 0) {
-                                            pos += byteArray[pos] + 1;
-                                        }
-                                        pos++; // skip terminator
-                                    }
-                                } else if (blockType === 0x2C) { // Image descriptor
-                                    // Skip image position and size (8 bytes)
-                                    pos += 8;
-                                    
-                                    const packedFields = byteArray[pos++];
-                                    const localColorTableFlag = (packedFields & 0x80) !== 0;
-                                    const localColorTableSize = 2 << (packedFields & 0x07);
-                                    
-                                    if (localColorTableFlag) {
-                                        pos += 3 * localColorTableSize; // skip local color table
-                                    }
-                                    
-                                    // Get image data
-                                    const lzwMinCodeSize = byteArray[pos++];
-                                    let imageData = [];
-                                    
-                                    // Read data sub-blocks
-                                    let blockSize = byteArray[pos++];
-                                    while (blockSize !== 0) {
-                                        imageData = imageData.concat(Array.from(byteArray.subarray(pos, pos + blockSize)));
-                                        pos += blockSize;
-                                        blockSize = byteArray[pos++];
-                                    }
-                                    
-                                    // Create a canvas with this frame
-                                    const tempCanvas = document.createElement('canvas');
-                                    const tempCtx = tempCanvas.getContext('2d');
-                                    
-                                    // For simplicity, we'll just store the original frame data
-                                    // In a real app, you'd decode the LZW and render each frame properly
-                                    const frameCanvas = document.createElement('canvas');
-                                    frameCanvas.width = originalGif.width;
-                                    frameCanvas.height = originalGif.height;
-                                    const frameCtx = frameCanvas.getContext('2d');
-                                    frameCtx.drawImage(originalGif, 0, 0);
-                                    
-                                    frames.push({
-                                        imageData: frameCanvas.toDataURL(),
-                                        delay: delay
-                                    });
-                                }
-                            }
-                            
-                            resolve({
-                                frames: frames,
-                                delay: delay
-                            });
-                        } catch (error) {
-                            reject(error);
-                        }
+                    const chunks = [];
+                    const recorder = new MediaRecorder(stream, {
+                        mimeType: format === 'mp4' ? 'video/mp4' : 'video/webm',
+                        videoBitsPerSecond: 1000000 * quality
+                    });
+                    
+                    recorder.ondataavailable = (e) => chunks.push(e.data);
+                    recorder.onstop = () => {
+                        resolve(new Blob(chunks, {type: format === 'mp4' ? 'video/mp4' : 'video/webm'}));
                     };
-                    reader.onerror = reject;
-                    reader.readAsArrayBuffer(file);
+                    
+                    recorder.start();
+                    setTimeout(() => recorder.stop(), 1000); // 1 second video for images
                 });
             }
-            
-            downloadBtn.addEventListener('click', function() {
-                if (!convertedFileUrl) return;
+
+            // Download
+            downloadBtn.addEventListener('click', () => {
+                if (!convertedBlob) return;
                 
-                const outputFormat = document.querySelector('input[name="outputFormat"]:checked').value;
-                const extension = outputFormat === 'mp4' ? 'mp4' : outputFormat === 'webm' ? 'webm' : 'gif';
-                const fileName = originalFile.name.replace(/\.[^/.]+$/, '') + `_converted.${extension}`;
+                const ext = outputFormat.value;
+                const filename = originalFile.name.replace(/\.[^/.]+$/, '') + '_converted.' + ext;
                 
                 const a = document.createElement('a');
-                a.href = convertedFileUrl;
-                a.download = fileName;
-                document.body.appendChild(a);
+                a.href = URL.createObjectURL(convertedBlob);
+                a.download = filename;
                 a.click();
-                document.body.removeChild(a);
             });
-            
-            function showStatus(message, type) {
-                statusDiv.textContent = message;
-                statusDiv.className = 'status ' + type;
-            }
-            
-            function formatBytes(bytes, decimals = 2) {
-                if (bytes === 0) return '0 Bytes';
-                const k = 1024;
-                const dm = decimals < 0 ? 0 : decimals;
-                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+
+            // Helper function to load scripts
+            function loadScript(url) {
+                return new Promise((resolve, reject) => {
+                    if (document.querySelector(`script[src="${url}"]`)) {
+                        resolve();
+                        return;
+                    }
+                    
+                    const script = document.createElement('script');
+                    script.src = url;
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
             }
         });
     </script>
