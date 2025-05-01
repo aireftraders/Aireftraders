@@ -576,10 +576,35 @@
             // Ensure the redirection URL is logged for debugging
             console.log('Redirecting to:', finalRedirectUrl);
 
+            // Show the game console button
+            showGameConsoleButton();
+
             // Use a timeout to ensure any pending operations complete before redirecting
             setTimeout(() => {
                 window.location.href = finalRedirectUrl;
             }, 100);
+        }
+
+        function showGameConsoleButton() {
+            const mainContainer = document.getElementById('mainContainer');
+            const gameButton = document.createElement('button');
+            gameButton.className = 'watch-ad-btn';
+            gameButton.textContent = 'Go to Game Console';
+            gameButton.style.backgroundColor = 'var(--success)';
+            gameButton.style.marginTop = '1.5rem';
+
+            gameButton.addEventListener('click', () => {
+                window.location.href = 'game.html';
+            });
+
+            mainContainer.appendChild(gameButton);
+
+            // Disable the button after 55 minutes
+            setTimeout(() => {
+                gameButton.disabled = true;
+                gameButton.textContent = 'Game Console Access Expired';
+                gameButton.style.backgroundColor = 'var(--danger)';
+            }, 55 * 60 * 1000); // 55 minutes in milliseconds
         }
     </script>
 </body>
