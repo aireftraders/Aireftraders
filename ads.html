@@ -218,7 +218,7 @@
     </style>
 </head>
 <body>
-    <!-- Navigation bar -->
+    <!-- Add navigation bar -->
     <nav style="width: 100%; background: var(--primary); padding: 1rem; text-align: center; box-shadow: var(--box-shadow);">
         <a href="index.html" style="color: white; text-decoration: none; font-size: 1.2rem; font-weight: 600;">Dashboard</a>
     </nav>
@@ -238,10 +238,6 @@
         
         <div id="adFrameContainer">
             <!-- Ad will be loaded here -->
-            <div id="adPlaceholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#666;">
-                <p>Ad will appear here when you click "Watch Ad"</p>
-            </div>
-            <div id="adContent"></div>
         </div>
         
         <div id="timerDisplay">Ad completes in <span id="timerCount">15</span> seconds</div>
@@ -250,8 +246,10 @@
     </div>
 
     <script>
-        // Initialize Dexie database (matches index.html exactly)
+        // Initialize Dexie database
         const db = new Dexie("AI_REF_TRADERS_DB");
+        
+        // Define database schema (must match index.html)
         db.version(1).stores({
             users: '++id, telegramId, balance, referrals, adsWatched, totalAdsWatched, verified, tradingActive, tradingCapital, dailyProfit, totalProfit, withdrawableProfit, bankDetails, paymentCircle, gameEarnings, lastAdWatchTime, streak, announcements',
             announcements: '++id, title, content, time, unread',
@@ -272,6 +270,9 @@
         let cooldownInterval = null;
         let redirectTo = 'game.html'; // Default to game.html
         let userData = null;
+        let timerInterval = null;
+        let timerStartTime = 0;
+        const gameDuration = 55 * 60 * 1000; // 55 minutes in milliseconds
 
         // Load user data from IndexedDB
         async function loadUserData() {
@@ -280,11 +281,11 @@
                 const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'demo-user';
                 
                 // Check if user exists in database
-                userData = await db.users.where('telegramId').equals(userId).first();
+                let user = await db.users.where('telegramId').equals(userId).first();
                 
-                if (!userData) {
+                if (!user) {
                     // Create new user with default values
-                    userData = {
+                    user = {
                         telegramId: userId,
                         balance: 5000,
                         referrals: 0,
@@ -314,10 +315,11 @@
                     };
                     
                     // Add new user to database
-                    await db.users.add(userData);
+                    await db.users.add(user);
                 }
                 
-                // Update current ad count
+                // Update user data
+                userData = user;
                 currentAdCount = userData.adsWatched || 0;
                 
                 return userData;
@@ -347,7 +349,7 @@
             // If user has completed ads and it's been less than cooldown
             if (userData.adsWatched >= totalAds && (now - lastWatchTime) < accessCooldown) {
                 accessDenied = true;
-                showAccessDenied(lastWatchTime + accessCooldown);
+                showAccessDenied(lastWatchTime + accessCooldown, redirectTo);
                 return true;
             }
             
@@ -362,7 +364,7 @@
         }
 
         // Show access denied message
-        function showAccessDenied(expiryTime) {
+        function showAccessDenied(expiryTime, redirectUrl) {
             const mainContainer = document.getElementById('mainContainer');
             mainContainer.innerHTML = `
                 <div class="ad-header">
@@ -376,14 +378,14 @@
                     <div class="time-remaining">Time remaining: <span id="cooldownTimer"></span></div>
                 </div>
                 
-                <button class="watch-ad-btn" id="returnBtn">Return to Dashboard</button>
+                <button class="watch-ad-btn" id="returnBtn">Return to Previous Page</button>
             `;
             
             updateCooldownTimer(expiryTime);
             cooldownInterval = setInterval(() => updateCooldownTimer(expiryTime), 1000);
             
             document.getElementById('returnBtn').addEventListener('click', () => {
-                window.location.href = 'index.html';
+                window.location.href = document.referrer || 'index.html';
             });
         }
 
@@ -399,7 +401,7 @@
             const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
             
             document.getElementById('cooldownTimer').textContent = 
-                `${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`;
+                `${minutes}m ${seconds}s`;
         }
 
         // Initialize page
@@ -415,6 +417,24 @@
         });
 
         function setupPage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const source = urlParams.get('source');
+            
+            if (source === 'games' || source === 'trading') {
+                redirectTo = source + '.html';
+                localStorage.setItem('postAdRedirect', redirectTo);
+            } else {
+                const storedRedirect = localStorage.getItem('postAdRedirect');
+                if (storedRedirect) {
+                    redirectTo = storedRedirect;
+                } else if (document.referrer && document.referrer.includes('games.html')) {
+                    redirectTo = 'games.html';
+                } else if (document.referrer && document.referrer.includes('trading.html')) {
+                    redirectTo = 'trading.html';
+                }
+                localStorage.setItem('postAdRedirect', redirectTo);
+            }
+
             currentAdCount = Math.min(userData?.adsWatched || 0, totalAds);
             
             if (currentAdCount >= totalAds) {
@@ -487,55 +507,26 @@
         }
 
         function startTimer() {
-            let secondsRemaining = minAdDuration / 1000;
-            document.getElementById('timerCount').textContent = secondsRemaining;
-            let isAdRunning = true;
+            let seconds = 15;
+            updateTimerDisplay(seconds);
+            
+            clearInterval(timer);
             timer = setInterval(() => {
-                secondsRemaining--;
-                document.getElementById('timerCount').textContent = secondsRemaining;
+                seconds--;
+                updateTimerDisplay(seconds);
                 
-                // Enable ad counting after 5 seconds (to prevent skipping)
-                if (minAdDuration - (secondsRemaining * 1000) > 5000) {
-                    canCountAd = true;
-                }
-                
-                if (secondsRemaining <= 0) {
+                if (seconds <= 0) {
                     clearInterval(timer);
-                    isAdRunning = false;
-                    completeAd();
+                    canCountAd = true;
+                    document.getElementById('watchAdBtn').textContent = "Continue";
+                    document.getElementById('watchAdBtn').style.backgroundColor = 'var(--success)';
                 }
             }, 1000);
         }
 
-        async function completeAd() {
-            currentAdCount++;
-            
-            // Update user data
-            userData.adsWatched = currentAdCount;
-            userData.totalAdsWatched = (userData.totalAdsWatched || 0) + 1;
-            userData.lastAdWatchTime = Date.now();
-            await saveUserData();
-            
-            // Notify index.html if it's the parent window
-            if (window.opener) {
-                window.opener.postMessage({
-                    type: 'adCountUpdate',
-                    adsWatched: currentAdCount,
-                    totalAdsWatched: userData.totalAdsWatched,
-                    lastAdWatchTime: userData.lastAdWatchTime
-                }, '*');
-            }
-
-            updateProgressDisplay();
-            
-            if (currentAdCount < totalAds) {
-                document.getElementById('watchAdBtn').disabled = false;
-                document.getElementById('watchAdBtn').textContent = "Watch Next Ad";
-            } else {
-                document.getElementById('watchAdBtn').textContent = "All Ads Completed!";
-                document.getElementById('watchAdBtn').disabled = true;
-                grantAccessAndRedirect();
-            }
+        function updateTimerDisplay(seconds) {
+            document.getElementById('timerCount').textContent = seconds;
+            document.getElementById('timerCount').style.color = seconds <= 5 ? 'var(--danger)' : 'var(--primary)';
         }
 
         async function handleAdWatch() {
@@ -546,25 +537,42 @@
                 return;
             }
 
-            // Complete the current ad
-            clearInterval(timer);
-            await completeAd();
+            currentAdCount++;
             
-            // Load next ad if not completed
-            if (currentAdCount < totalAds) {
-                loadAd();
+            // Update user data
+            userData.adsWatched = currentAdCount;
+            userData.totalAdsWatched = (userData.totalAdsWatched || 0) + 1;
+            userData.lastAdWatchTime = Date.now();
+            await saveUserData();
+            
+            // Notify parent/opener window (index.html) if exists
+            const targetWindow = window.opener || window.parent;
+            if (targetWindow && targetWindow !== window) {
+                targetWindow.postMessage({
+                    type: 'adCountUpdate',
+                    adsWatched: currentAdCount,
+                    totalAdsWatched: userData.totalAdsWatched,
+                    lastAdWatchTime: userData.lastAdWatchTime
+                }, '*');
             }
+
+            if (currentAdCount >= totalAds) {
+                grantAccessAndRedirect();
+                return;
+            }
+
+            updateProgressDisplay();
+            document.getElementById('watchAdBtn').textContent = "Watch Ad";
+            document.getElementById('watchAdBtn').style.backgroundColor = 'var(--primary)';
+            loadAd();
         }
 
         function grantAccessAndRedirect() {
-            // Set cooldown
-            userData.lastAdWatchTime = Date.now();
-            saveUserData();
-            
-            // Redirect after 3 seconds
-            setTimeout(() => {
-                window.location.href = 'game.html';
-            }, 3000);
+            const redirectUrl = localStorage.getItem('postAdRedirect') || 'game.html';
+            const finalRedirectUrl = redirectUrl.includes('?') 
+                ? `${redirectUrl}&fromAds=true` 
+                : `${redirectUrl}?fromAds=true`;
+            window.location.href = finalRedirectUrl;
         }
     </script>
 </body>
