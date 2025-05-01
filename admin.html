@@ -1034,14 +1034,14 @@
         // Save system settings
         async function saveSystemSettings() {
             const settings = [
-                { name: 'referralRequirement', value: parseInt(document.getElementById('referralRequirement').value) },
-                { name: 'adsRequirement', value: parseInt(document.getElementById('adsRequirement').value) },
-                { name: 'verificationFee', value: parseInt(document.getElementById('verificationFee').value) },
-                { name: 'minWithdrawal', value: parseInt(document.getElementById('minWithdrawal').value) },
-                { name: 'userProfitPercent', value: parseInt(document.getElementById('userProfitPercent').value) },
-                { name: 'companyProfitPercent', value: parseInt(document.getElementById('companyProfitPercent').value) },
-                { name: 'systemFeePercent', value: parseInt(document.getElementById('systemFeePercent').value) },
-                { name: 'batchSize', value: parseInt(document.getElementById('batchSize').value) }
+                { name: 'referralRequirement', value: parseInt(document.getElementById('referralRequirement').value) || 6 },
+                { name: 'adsRequirement', value: parseInt(document.getElementById('adsRequirement').value) || 20 },
+                { name: 'verificationFee', value: parseInt(document.getElementById('verificationFee').value) || 1050 },
+                { name: 'minWithdrawal', value: parseInt(document.getElementById('minWithdrawal').value) || 5000 },
+                { name: 'userProfitPercent', value: parseInt(document.getElementById('userProfitPercent').value) || 70 },
+                { name: 'companyProfitPercent', value: parseInt(document.getElementById('companyProfitPercent').value) || 25 },
+                { name: 'systemFeePercent', value: parseInt(document.getElementById('systemFeePercent').value) || 5 },
+                { name: 'batchSize', value: parseInt(document.getElementById('batchSize').value) || 1000 }
             ];
             
             try {
@@ -1049,7 +1049,7 @@
                 await db.systemSettings.bulkAdd(settings);
                 
                 // Update current batch size
-                currentBatchSize = parseInt(document.getElementById('batchSize').value);
+                currentBatchSize = parseInt(document.getElementById('batchSize').value) || 1000;
                 document.getElementById('batchSizeDisplay').textContent = currentBatchSize;
                 
                 showNotification('System settings saved successfully!');
@@ -1899,35 +1899,18 @@
             try {
                 const admin = await db.adminCredentials.where('username').equals(username).first();
                 
-                // Check if admin exists and password matches
-                if (admin && admin.password === password) {
-                    // Check if passkey is required and matches
-                    if (admin.passkey && admin.passkey !== passkey) {
-                        showNotification('Invalid passkey.');
-                        return;
-                    }
+                if (admin && admin.password === password && (!admin.passkey || admin.passkey === passkey)) {
+                    // Successful login
+                    document.getElementById('loginContainer').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    document.getElementById('adminUsernameDisplay').textContent = username;
+
+                    // Load admin panel data
+                    await loadAdminPanelData();
                     
-                    // Check if 2FA is enabled
-                    if (admin.totpSecret) {
-                        // Store temporary admin data for 2FA verification
-                        tempAdminData = admin;
-                        
-                        // Switch to 2FA verification step
-                        document.getElementById('passwordStep').classList.remove('active');
-                        document.getElementById('totpStep').classList.add('active');
-                        
-                        // Clear password fields
-                        document.getElementById('adminPassword').value = '';
-                        document.getElementById('adminPasskey').value = '';
-                        
-                        // Focus first TOTP input
-                        document.querySelector('#totpStep .totp-input').focus();
-                    } else {
-                        // Successful login without 2FA
-                        completeAdminLogin(admin);
-                    }
+                    showNotification('Login successful!');
                 } else {
-                    showNotification('Invalid username or password.');
+                    showNotification('Invalid credentials.');
                 }
             } catch (error) {
                 console.error('Error during admin login:', error);
@@ -1937,14 +1920,15 @@
 
         // Verify 2FA code
         async function verify2FACode() {
-            if (!tempAdminData || !tempAdminData.totpSecret) {
-                showNotification('2FA not properly configured.');
-                return;
-            }
-            
             try {
+                const admin = await db.adminCredentials.where('username').equals('admin').first();
+                if (!admin || !admin.totpSecret) {
+                    showNotification('2FA not properly set up.');
+                    return;
+                }
+                
                 const totp = new OTPAuth.TOTP({
-                    secret: OTPAuth.Secret.fromBase32(tempAdminData.totpSecret),
+                    secret: OTPAuth.Secret.fromBase32(admin.totpSecret),
                     issuer: 'AI REF-TRADERS',
                     label: 'admin',
                     algorithm: 'SHA1',
@@ -1963,30 +1947,22 @@
                 
                 const isValid = totp.validate({ token: enteredCode, window: 1 }) !== null;
                 if (isValid) {
-                    // Successful 2FA verification
-                    completeAdminLogin(tempAdminData);
+                    // Successful verification
+                    document.getElementById('loginContainer').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                    document.getElementById('adminUsernameDisplay').textContent = 'admin';
+
+                    // Load admin panel data
+                    await loadAdminPanelData();
                     
-                    // Clear TOTP inputs
-                    document.querySelectorAll('#totpStep .totp-input').forEach(input => {
-                        input.value = '';
-                    });
+                    showNotification('Login successful!');
                 } else {
                     showNotification('Invalid verification code. Please try again.');
                 }
             } catch (error) {
                 console.error('Error verifying 2FA code:', error);
-                showNotification('Error verifying code. Please try again.');
+                showNotification('An error occurred during verification. Please try again.');
             }
-        }
-
-        // Complete admin login process
-        function completeAdminLogin(admin) {
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-            document.getElementById('adminUsernameDisplay').textContent = admin.username;
-
-            // Load admin panel data
-            loadAdminPanelData();
         }
 
         // Logout admin
@@ -1995,166 +1971,107 @@
                 if (confirmed) {
                     document.getElementById('loginContainer').style.display = 'block';
                     document.getElementById('adminPanel').style.display = 'none';
-                    document.getElementById('passwordStep').classList.add('active');
-                    document.getElementById('totpStep').classList.remove('active');
-                    
-                    // Clear form fields
+                    // Reset login form
                     document.getElementById('adminUsername').value = '';
                     document.getElementById('adminPassword').value = '';
                     document.getElementById('adminPasskey').value = '';
-                    
-                    // Clear TOTP inputs
-                    document.querySelectorAll('#totpStep .totp-input').forEach(input => {
-                        input.value = '';
-                    });
-                    
-                    tempAdminData = null;
                 }
             });
         }
 
-        // Theme toggle
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-        });
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            try {
-                const savedTheme = localStorage.getItem('theme') || 'light';
-                setTheme(savedTheme);
-                initializeAdminPanel();
-
-                // Tab switching
-                document.querySelectorAll('.admin-tab').forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        // Remove active class from all tabs and contents
-                        document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-                        document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
-
-                        // Add active class to clicked tab and corresponding content
-                        tab.classList.add('active');
-                        const tabContentId = `${tab.getAttribute('data-tab')}Tab`;
-                        document.getElementById(tabContentId).classList.add('active');
-                    });
+        // Initialize all functionality
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Set theme
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+            
+            // Initialize database
+            await initializeAdminPanel();
+            
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            });
+            
+            // Login functionality
+            document.getElementById('adminLoginBtn').addEventListener('click', adminLogin);
+            document.getElementById('verifyTotpBtn').addEventListener('click', verify2FACode);
+            document.getElementById('backToPasswordBtn').addEventListener('click', function() {
+                document.getElementById('passwordStep').classList.add('active');
+                document.getElementById('totpStep').classList.remove('active');
+            });
+            document.getElementById('logoutBtn').addEventListener('click', logoutAdmin);
+            
+            // Tab switching
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs and contents
+                    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab') + 'Tab';
+                    document.getElementById(tabId).classList.add('active');
                 });
-
-                // Login button
-                document.getElementById('adminLoginBtn').addEventListener('click', adminLogin);
-
-                // Back to password button
-                document.getElementById('backToPasswordBtn').addEventListener('click', () => {
-                    document.getElementById('totpStep').classList.remove('active');
-                    document.getElementById('passwordStep').classList.add('active');
-                });
-
-                // Verify 2FA button
-                document.getElementById('verifyTotpBtn').addEventListener('click', verify2FACode);
-
-                // Logout button
-                document.getElementById('logoutBtn').addEventListener('click', logoutAdmin);
-
-                // Pagination buttons
-                document.getElementById('prevPageBtn').addEventListener('click', () => {
-                    if (currentPage > 1) {
-                        currentPage--;
-                        loadUserManagementData();
-                    }
-                });
-
-                document.getElementById('nextPageBtn').addEventListener('click', () => {
-                    currentPage++;
+            });
+            
+            // User management
+            document.getElementById('saveUserBtn').addEventListener('click', saveUserChanges);
+            document.getElementById('resetUserBtn').addEventListener('click', function() {
+                if (currentSelectedUserId) editUser(currentSelectedUserId);
+            });
+            document.getElementById('userSearch').addEventListener('input', loadUserManagementData);
+            document.getElementById('prevPageBtn').addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
                     loadUserManagementData();
-                });
-
-                // Save user changes button
-                document.getElementById('saveUserBtn').addEventListener('click', saveUserChanges);
-
-                // Reset user changes button
-                document.getElementById('resetUserBtn').addEventListener('click', () => {
-                    if (currentSelectedUserId) {
-                        editUser(currentSelectedUserId);
-                    }
-                });
-
-                // Process batch button
-                document.getElementById('processBatchBtn').addEventListener('click', processCurrentBatch);
-
-                // Force process batch button
-                document.getElementById('forceProcessBtn').addEventListener('click', forceProcessBatch);
-
-                // Notify eligible users button
-                document.getElementById('notifyEligibleBtn').addEventListener('click', notifyEligibleUsers);
-
-                // Save settings button
-                document.getElementById('saveSettingsBtn').addEventListener('click', saveSystemSettings);
-
-                // Reset settings button
-                document.getElementById('resetSettingsBtn').addEventListener('click', resetSystemSettings);
-
-                // Send announcement button
-                document.getElementById('sendAnnouncementBtn').addEventListener('click', sendAnnouncement);
-
-                // Preview announcement button
-                document.getElementById('previewAnnouncementBtn').addEventListener('click', previewAnnouncement);
-
-                // Send reply button
-                document.getElementById('sendReplyBtn').addEventListener('click', sendTicketReply);
-
-                // Resolve ticket button
-                document.getElementById('resolveTicketBtn').addEventListener('click', resolveTicket);
-
-                // Change security settings button
-                document.getElementById('changeSecurityBtn').addEventListener('click', changeAdminPassword);
-
-                // Confirm 2FA setup button
-                document.getElementById('confirm2FABtn').addEventListener('click', confirm2FASetup);
-
-                // Enable 2FA checkbox
-                document.getElementById('enable2FA').addEventListener('change', function() {
-                    if (this.checked) {
-                        // When enabling 2FA, we'll generate the secret when saving
-                        document.getElementById('2FASetupSection').style.display = 'block';
-                    } else {
-                        document.getElementById('2FASetupSection').style.display = 'none';
-                    }
-                });
-
-                // Auto-focus next TOTP input field
-                document.querySelectorAll('.totp-input').forEach((input, index, inputs) => {
-                    input.addEventListener('input', (e) => {
-                        if (e.target.value.length === 1 && index < inputs.length - 1) {
-                            inputs[index + 1].focus();
-                        }
-                    });
-
-                    input.addEventListener('keydown', (e) => {
-                        if (e.key === 'Backspace' && e.target.value.length === 0 && index > 0) {
-                            inputs[index - 1].focus();
-                        }
-                    });
-                });
-
-                // Handle Enter key in login form
-                document.getElementById('adminPassword').addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        adminLogin();
-                    }
-                });
-
-                // Handle Enter key in 2FA form
-                document.querySelectorAll('.totp-input').forEach(input => {
-                    input.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') {
-                            verify2FACode();
-                        }
-                    });
-                });
-
-            } catch (error) {
-                console.error('Error initializing admin panel:', error);
-                showNotification('An error occurred during initialization. Please refresh the page.');
+                }
+            });
+            document.getElementById('nextPageBtn').addEventListener('click', function() {
+                currentPage++;
+                loadUserManagementData();
+            });
+            
+            // Payment processing
+            document.getElementById('processBatchBtn').addEventListener('click', processCurrentBatch);
+            document.getElementById('forceProcessBtn').addEventListener('click', forceProcessBatch);
+            document.getElementById('notifyEligibleBtn').addEventListener('click', notifyEligibleUsers);
+            
+            // System settings
+            document.getElementById('saveSettingsBtn').addEventListener('click', saveSystemSettings);
+            document.getElementById('resetSettingsBtn').addEventListener('click', resetSystemSettings);
+            document.getElementById('changeSecurityBtn').addEventListener('click', changeAdminPassword);
+            document.getElementById('confirm2FABtn').addEventListener('click', confirm2FASetup);
+            document.getElementById('enable2FA').addEventListener('change', function() {
+                if (this.checked) {
+                    changeAdminPassword(); // This will show the 2FA setup section
+                } else {
+                    document.getElementById('2FASetupSection').style.display = 'none';
+                }
+            });
+            
+            // Announcements
+            document.getElementById('sendAnnouncementBtn').addEventListener('click', sendAnnouncement);
+            document.getElementById('previewAnnouncementBtn').addEventListener('click', previewAnnouncement);
+            
+            // Support tickets
+            document.getElementById('sendReplyBtn').addEventListener('click', sendTicketReply);
+            document.getElementById('resolveTicketBtn').addEventListener('click', resolveTicket);
+            
+            // Modal buttons
+            document.getElementById('sendPreviewBtn').addEventListener('click', function() {
+                document.getElementById('previewModal').classList.remove('active');
+                sendAnnouncement();
+            });
+            document.getElementById('editPreviewBtn').addEventListener('click', function() {
+                document.getElementById('previewModal').classList.remove('active');
+            });
+            
+            // If already logged in, show admin panel
+            if (document.getElementById('adminPanel').style.display === 'none') {
+                document.getElementById('loginContainer').style.display = 'block';
             }
         });
 
