@@ -379,13 +379,18 @@
                 </div>
                 
                 <button class="watch-ad-btn" id="returnBtn">Return to Previous Page</button>
+                <button class="watch-ad-btn" id="gameConsoleBtn" style="background-color: var(--success); margin-top: 1rem;">Go to Game Console</button>
             `;
-            
+
             updateCooldownTimer(expiryTime);
             cooldownInterval = setInterval(() => updateCooldownTimer(expiryTime), 1000);
-            
+
             document.getElementById('returnBtn').addEventListener('click', () => {
                 window.location.href = document.referrer || 'index.html';
+            });
+
+            document.getElementById('gameConsoleBtn').addEventListener('click', () => {
+                window.location.href = 'game.html';
             });
         }
 
