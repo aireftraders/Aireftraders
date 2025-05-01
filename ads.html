@@ -572,7 +572,14 @@
             const finalRedirectUrl = redirectUrl.includes('?') 
                 ? `${redirectUrl}&fromAds=true` 
                 : `${redirectUrl}?fromAds=true`;
-            window.location.href = finalRedirectUrl;
+
+            // Ensure the redirection URL is logged for debugging
+            console.log('Redirecting to:', finalRedirectUrl);
+
+            // Use a timeout to ensure any pending operations complete before redirecting
+            setTimeout(() => {
+                window.location.href = finalRedirectUrl;
+            }, 100);
         }
     </script>
 </body>
