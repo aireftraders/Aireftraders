@@ -3081,7 +3081,13 @@
             
             // Admin panel button
             document.getElementById('adminPanelBtn').addEventListener('click', function() {
-                window.location.href = 'admin.html';
+                // Check again to prevent unauthorized access
+                if (localStorage.getItem('isAdminAuthenticated') === 'true') {
+                    window.location.href = 'admin.html';
+                } else {
+                    // Redirect to admin login or show error
+                    showNotification('Unauthorized access');
+                }
             });
 
             // Language dropdown change event
@@ -3467,11 +3473,14 @@
         
         // Check if user has admin access
         function checkAdminAccess() {
-            // In a real app, this would check against server-side permissions
-            const isAdmin = tg?.initDataUnsafe?.user?.username === 'admin' || true; // For demo purposes
+            // Get admin status from a secure source
+            const isAdmin = localStorage.getItem('isAdminAuthenticated') === 'true';
             
+            // Only show admin button if user is authenticated as admin
             if (isAdmin) {
                 document.getElementById('adminPanelBtn').style.display = 'block';
+            } else {
+                document.getElementById('adminPanelBtn').style.display = 'none';
             }
         }
         
@@ -3493,8 +3502,50 @@
                 document.querySelector('.investment-section').scrollIntoView({ behavior: 'smooth' });
             }, 100);
         }
+
+        // Example: Capturing a referral from URL
+        function captureReferral() {
+            // Get the URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Check if there's a referral code
+            const referralCode = urlParams.get('ref');
+            
+            if (referralCode) {
+                // Save it to localStorage so you don't lose it
+                localStorage.setItem('referralCode', referralCode);
+                
+                // You might also want to send it to your backend right away
+                sendReferralToBackend(referralCode);
+            }
+        }
+
+        // Call this when your page loads
+        window.addEventListener('load', captureReferral);
+
+        // Example: Sending referral to backend
+        async function sendReferralToBackend(referralCode) {
+            try {
+                const response = await fetch('/api/track-referral', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        referralCode: referralCode,
+                        // Include user ID if the user is logged in
+                        userId: getCurrentUserId() // Replace with your actual function
+                    }),
+                });
+                
+                const data = await response.json();
+                console.log('Referral tracked:', data);
+            } catch (error) {
+                console.error('Error tracking referral:', error);
+            }
+        }
     </script>
-<!-- Add these scripts right before the closing </body> tag -->
+    <!-- Add these scripts right before the closing </body> tag -->
 <script src="js/shared-data-service.js"></script>
 <script src="js/telegram-bridge.js"></script>
 <script src="js/page-connector.js"></script>
