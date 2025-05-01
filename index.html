@@ -2054,7 +2054,34 @@
     <!-- Admin Panel Button -->
     <button id="adminPanelBtn" style="display: none;" class="primary">Admin Panel</button>
     
+    <!-- Add this script to control splash screen visibility -->
     <script>
+        // Check if user has already seen the splash screen in this session
+        document.addEventListener('DOMContentLoaded', function() {
+            const splashScreen = document.getElementById('splashScreen');
+            
+            // Check if user has already seen the splash screen in this session
+            const hasSeenSplash = sessionStorage.getItem('hasSeenSplash') === 'true';
+            
+            // Check if we're navigating back from another page
+            const isNavigatingBack = document.referrer.includes('trading.html') || 
+                                    document.referrer.includes('game.html') || 
+                                    document.referrer.includes('ads.html') || 
+                                    document.referrer.includes('admin.html');
+            
+            // Only show splash screen on first visit or after login
+            if (hasSeenSplash || isNavigatingBack) {
+                // Hide splash screen immediately
+                splashScreen.style.display = 'none';
+                console.log('Splash screen hidden - already seen or navigating back');
+            } else {
+                // Show splash screen and mark as seen
+                initSplashScreen();
+                sessionStorage.setItem('hasSeenSplash', 'true');
+                console.log('Showing splash screen - first visit');
+            }
+        });
+
         // Initialize Dexie database
         const db = new Dexie("AI_REF_TRADERS_DB");
         
@@ -2693,6 +2720,65 @@
             }
         }
 
+        // Your existing splash screen initialization function
+        function initSplashScreen() {
+            const splashScreen = document.getElementById('splashScreen');
+            const progressBar = document.getElementById('progressBar');
+            const loadingText = document.getElementById('loadingText');
+            
+            // Professional loading messages
+            const loadingMessages = [
+                "Initializing secure trading environment",
+                "Connecting to banking partners",
+                "Authenticating user credentials",
+                "Loading AI prediction models",
+                "Optimizing trading algorithms",
+                "Finalizing security protocols"
+            ];
+            
+            // Simulate professional loading sequence
+            let progress = 0;
+            let currentMessage = 0;
+            
+            function updateProgress() {
+                // Increment progress with realistic variation
+                const increment = 2 + Math.random() * 3;
+                progress = Math.min(progress + increment, 100);
+                
+                progressBar.style.width = progress + '%';
+                
+                // Update loading message at specific intervals
+                const messageThresholds = [15, 30, 45, 60, 75, 90];
+                if (currentMessage < messageThresholds.length && progress >= messageThresholds[currentMessage]) {
+                    loadingText.textContent = loadingMessages[currentMessage];
+                    currentMessage++;
+                }
+                
+                if (progress < 100) {
+                    // Vary timing based on progress
+                    const timing = progress < 30 || progress > 80 ? 100 : 200;
+                    setTimeout(updateProgress, timing + Math.random() * 100);
+                } else {
+                    // Final completion
+                    loadingText.textContent = "Ready to trade";
+                    completeLoading();
+                }
+            }
+            
+            function completeLoading() {
+                // Add slight delay before transition
+                setTimeout(() => {
+                    splashScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        splashScreen.style.display = 'none';
+                    }, 800);
+                }, 500);
+            }
+            
+            // Start loading process
+            setTimeout(updateProgress, 800);
+        }
+
         // Call loadLatestBalance when the page loads
         document.addEventListener('DOMContentLoaded', async function () {
             // Apply theme and language settings immediately
@@ -3124,265 +3210,61 @@
                     let shareUrl = '';
                     switch (platform) {
                         case 'whatsapp':
-                            shareUrl = `https://wa.me/?text=${encodeURIComponent(`Join AI REF-TRADERS and start earning today! Use my referral link: ${referralLink}`)}`;
+                            shareUrl = `https://wa.me/?text=${encodeURI(`Join AI REF-TRADERS and earn daily profits! Use my referral link: ${referralLink}`)}`;
                             break;
                         case 'facebook':
-                            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`;
+                            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURI(referralLink)}`;
                             break;
                         case 'twitter':
-                            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Join AI REF-TRADERS and start earning today! ${referralLink}`)}`;
+                            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURI(`Join AI REF-TRADERS and earn daily profits! Use my referral link: ${referralLink}`)}`;
                             break;
                         case 'telegram':
-                            shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Join AI REF-TRADERS and start earning today!')}`;
+                            shareUrl = `https://t.me/share/url?url=${encodeURI(referralLink)}&text=${encodeURI('Join AI REF-TRADERS and earn daily profits!')}`;
                             break;
                         default:
-                            return;
+                            break;
                     }
-                    window.open(shareUrl, '_blank');
-                    showNotification(`Sharing to ${platform}...`);
+                    if (shareUrl) {
+                        window.open(shareUrl, '_blank');
+                    }
                 }
 
                 // Add event listeners for social media share buttons
-                document.getElementById('shareWhatsApp')?.addEventListener('click', () => shareReferral('whatsapp'));
-                document.getElementById('shareFacebook')?.addEventListener('click', () => shareReferral('facebook'));
-                document.getElementById('shareTwitter')?.addEventListener('click', () => shareReferral('twitter'));
-                document.getElementById('shareTelegram')?.addEventListener('click', () => shareReferral('telegram'));
+                document.getElementById('shareWhatsApp').addEventListener('click', () => shareReferral('whatsapp'));
+                document.getElementById('shareFacebook').addEventListener('click', () => shareReferral('facebook'));
+                document.getElementById('shareTwitter').addEventListener('click', () => shareReferral('twitter'));
+                document.getElementById('shareTelegram').addEventListener('click', () => shareReferral('telegram'));
             }
-
-            // Track referrals
-            async function trackReferral() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const referrerId = urlParams.get('start');
-                
-                if (referrerId) {
-                    try {
-                        const userId = tg?.initDataUnsafe?.user?.id;
-                        if (userId) {
-                            // Check if this user already has a referrer
-                            const user = await db.users.where('telegramId').equals(userId).first();
-                            
-                            if (user && !user.referrer) {
-                                // Update the user's record with the referrer
-                                await db.users.where('telegramId').equals(userId).modify({ referrer: referrerId });
-                                
-                                // Find the referrer and update their referral count
-                                const referrer = await db.users.where('telegramId').equals(referrerId).first();
-                                if (referrer) {
-                                    const newReferrals = (referrer.referrals || 0) + 1;
-                                    await db.users.where('telegramId').equals(referrerId).modify({ 
-                                        referrals: newReferrals,
-                                        balance: (referrer.balance || 0) + 5000,
-                                        referralEarnings: (referrer.referralEarnings || 0) + 5000
-                                    });
-                                    
-                                    // Show notification to the referrer
-                                    showNotification(`🎉 New referral! You earned ₦5,000. Total referrals: ${newReferrals}`);
-                                }
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error tracking referral:', error);
-                    }
-                }
-            }
-
-            // Call trackReferral on page load
-            trackReferral();
-            
-            // Splash screen functionality
-            function initSplashScreen() {
-                const splashScreen = document.getElementById('splashScreen');
-                const progressBar = document.getElementById('progressBar');
-                const loadingText = document.getElementById('loadingText');
-                
-                // Professional loading messages
-                const loadingMessages = [
-                    "Initializing secure trading environment",
-                    "Connecting to banking partners",
-                    "Authenticating user credentials",
-                    "Loading AI prediction models",
-                    "Optimizing trading algorithms",
-                    "Finalizing security protocols"
-                ];
-                
-                // Simulate professional loading sequence
-                let progress = 0;
-                let currentMessage = 0;
-                
-                function updateProgress() {
-                    // Increment progress with realistic variation
-                    const increment = 2 + Math.random() * 3;
-                    progress = Math.min(progress + increment, 100);
-                    
-                    progressBar.style.width = progress + '%';
-                    
-                    // Update loading message at specific intervals
-                    const messageThresholds = [15, 30, 45, 60, 75, 90];
-                    if (currentMessage < messageThresholds.length && progress >= messageThresholds[currentMessage]) {
-                        loadingText.textContent = loadingMessages[currentMessage];
-                        currentMessage++;
-                    }
-                    
-                    if (progress < 100) {
-                        // Vary timing based on progress
-                        const timing = progress < 30 || progress > 80 ? 100 : 200;
-                        setTimeout(updateProgress, timing + Math.random() * 100);
-                    } else {
-                        // Final completion
-                        loadingText.textContent = "Ready to trade";
-                        completeLoading();
-                    }
-                }
-                
-                function completeLoading() {
-                    // Add slight delay before transition
-                    setTimeout(() => {
-                        splashScreen.style.opacity = '0';
-                        setTimeout(() => {
-                            splashScreen.style.display = 'none';
-                        }, 800);
-                    }, 500);
-                }
-                
-                // Start loading process
-                setTimeout(updateProgress, 800);
-            }
-            
-            // Initialize splash screen
-            initSplashScreen();
         });
-        
-        // Check if user is admin
-        async function checkAdminAccess() {
-            try {
-                const userId = tg?.initDataUnsafe?.user?.id;
-                if (!userId) return;
-                
-                const admin = await db.adminCredentials.where('username').equals('admin').first();
-                if (admin && admin.telegramId === userId) {
-                    document.getElementById('adminPanelBtn').style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Error checking admin access:', error);
-            }
-        }
-        
-        // Update UI
+
+        // Update UI based on user data
         function updateUI() {
             document.getElementById('balanceDisplay').textContent = userData.balance.toLocaleString();
-            document.getElementById('verifiedBadge').textContent = userData.verified ? '✅' : '❌';
             document.getElementById('currentReferrals').textContent = userData.referrals;
             document.getElementById('completedReferrals').textContent = userData.referrals;
-            document.getElementById('referralProgress').value = userData.referrals;
             document.getElementById('referralEarnings').textContent = (userData.referrals * 5000).toLocaleString();
-            document.getElementById('availableBalance').textContent = Math.max(0, userData.withdrawableProfit || 0).toLocaleString();
+            document.getElementById('referralProgress').value = userData.referrals;
+            document.getElementById('paidUsers').textContent = userData.paymentCircle.current;
+            document.getElementById('paymentCircleProgress').value = userData.paymentCircle.current;
+            document.getElementById('availableBalance').textContent = (userData.withdrawableProfit || 0).toLocaleString();
             
-            if (userData.adsWatched >= 20 && userData.referrals >= 6) {
-                userData.tradingActive = true;
-                userData.tradingCapital = 35000;
-                document.getElementById('tradingStatus').innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + (userData.dailyProfit || 0).toLocaleString() + ')';
+            // Update verified badge
+            document.getElementById('verifiedBadge').textContent = userData.verified ? '✅' : '❌';
+            
+            // Update trading status
+            if (userData.tradingActive) {
+                document.getElementById('tradingStatus').innerHTML = 'AI Bot: <b>Active</b> (Generating ₦' + (userData.dailyProfit || 0).toLocaleString() + ' daily)';
             } else {
                 document.getElementById('tradingStatus').innerHTML = 'AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)';
             }
-            
-            document.getElementById('paidUsers').textContent = (userData.paymentCircle?.current || 0).toLocaleString();
-            document.getElementById('paymentCircleProgress').value = userData.paymentCircle?.current || 0;
-        }
-        
-        // Update login streak
-        async function updateLoginStreak() {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            try {
-                const userId = tg?.initDataUnsafe?.user?.id || 'demo-user';
-                const lastLogin = userData.streak.lastLogin ? new Date(userData.streak.lastLogin) : null;
-                
-                // Check if user logged in today
-                if (!lastLogin || lastLogin < today) {
-                    // Check if consecutive login (yesterday)
-                    const yesterday = new Date(today);
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    
-                    if (lastLogin && lastLogin >= yesterday) {
-                        // Consecutive login - increment streak
-                        userData.streak.count += 1;
-                        if (userData.streak.count > 7) {
-                            userData.streak.count = 1; // Reset streak after day 7
-                        }
-                    } else {
-                        // New streak
-                        userData.streak.count = 1;
-                    }
-                    
-                    // Calculate bonus based on streak day
-                    const bonusAmount = 500 + ((userData.streak.count - 1) * 100); // ₦500 on day 1, +₦100 each day
-                    userData.balance += bonusAmount;
-                    userData.streak.bonus = bonusAmount;
-                    userData.streak.lastLogin = today.toISOString();
-                    
-                    // Save updated data
-                    await saveUserData();
-                    
-                    // Show notification
-                    showNotification(`Daily streak bonus: ₦${bonusAmount}`);
-                    
-                    // Update UI
-                    updateUI();
-                    updateStreakCalendar();
-                }
-            } catch (error) {
-                console.error('Error updating login streak:', error);
-            }
-        }
-        
-        // Share on social media
-        function shareOnSocialMedia(platform) {
-            const refLink = `https://t.me/AIREFTRADERSbot?start=${tg?.initDataUnsafe?.user?.id || 'demo-user'}`;
-            let shareUrl = '';
-            
-            switch (platform) {
-                case 'whatsapp':
-                    shareUrl = `https://wa.me/?text=${encodeURIComponent(`Join AI REF-TRADERS and start earning today! Use my referral link: ${refLink}`)}`;
-                    break;
-                case 'facebook':
-                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(refLink)}`;
-                    break;
-                case 'twitter':
-                    shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Join AI REF-TRADERS and start earning today! ${refLink}`)}`;
-                    break;
-                case 'telegram':
-                    shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent('Join AI REF-TRADERS and start earning today!')}`;
-                    break;
-                case 'instagram':
-                    // Instagram doesn't support direct sharing, so we'll just copy to clipboard
-                    navigator.clipboard.writeText(refLink).then(() => {
-                        showNotification('Referral link copied! Paste it in your Instagram bio or posts');
-                    });
-                    return;
-                default:
-                    return;
-            }
-            
-            window.open(shareUrl, '_blank');
-            showNotification(`Sharing to ${platform}...`);
-        }
-        
-        // Update balance display
-        function updateBalance() {
-            document.getElementById('balanceDisplay').textContent = userData.balance.toLocaleString();
-            document.getElementById('availableBalance').textContent = Math.max(0, userData.withdrawableProfit || 0).toLocaleString();
         }
         
         // Show notification
         function showNotification(message) {
             const notification = document.getElementById('notification');
-            const notificationText = document.getElementById('notificationText');
-            
-            if (!notification || !notificationText) return;
-            
-            notificationText.textContent = message;
+            document.getElementById('notificationText').textContent = message;
             notification.classList.add('show');
+            
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
@@ -3390,198 +3272,227 @@
         
         // Show success modal
         function showSuccess(title, message) {
-            const successTitle = document.getElementById('successTitle');
-            const successMessage = document.getElementById('successMessage');
-            const successModal = document.getElementById('successModal');
-            
-            successTitle.textContent = title;
-            successMessage.textContent = message;
-            successModal.classList.add('active');
+            document.getElementById('successTitle').textContent = title;
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successModal').classList.add('active');
         }
         
-        // Simulate trading
-        async function simulateTrading() {
-            if (userData.tradingActive) {
-                try {
-                    const userId = tg?.initDataUnsafe?.user?.id || 'demo-user';
-                    
-                    // Calculate random profit (20-50% of capital)
-                    const profitPercentage = 20 + Math.random() * 30; // 20-50%
-                    const totalProfit = Math.floor(userData.tradingCapital * (profitPercentage / 100));
-                    
-                    // Distribute profits
-                    const userShare = Math.floor(totalProfit * 0.7); // 70% to user
-                    const companyShare = Math.floor(totalProfit * 0.25); // 25% to company
-                    const systemFee = totalProfit - userShare - companyShare; // 5% system fee
-                    
-                    // Update user data
-                    userData.dailyProfit = userShare;
-                    userData.totalProfit += userShare;
-                    userData.withdrawableProfit += userShare;
-                    userData.balance += userShare;
-                    
-                    // Save to database
-                    await saveUserData();
-                    
-                    updateBalance();
-                    updateUI();
-                    
-                    if (Math.random() > 0.7) {
-                        showNotification('💸 Profit earned: ₦' + Math.floor(userShare).toLocaleString());
-                    }
-                    
-                    if (Math.random() > 0.8) {
-                        userData.paymentCircle.current = (userData.paymentCircle?.current || 0) + Math.floor(Math.random() * 50) + 10;
-                        updateUI();
-                    }
-                } catch (error) {
-                    console.error('Error simulating trading:', error);
-                }
-            }
-        }
-        
-        // Toggle FAQ answer visibility
-        function toggleFaq(index) {
-            const answer = document.getElementById('faq' + index);
-            if (answer) {
-                answer.classList.toggle('show');
-            }
-        }
-        
-        // ===== TESTIMONIAL ROTATION =====
+        // Testimonial rotation
         let currentTestimonial = 1;
-        const totalTestimonials = 15;
         let testimonialInterval;
-        let isPaused = false;
         
         function showTestimonial(index) {
-            // Handle wrap-around
-            if (index > totalTestimonials) index = 1;
-            if (index < 1) index = totalTestimonials;
-            
-            // Hide all testimonials
-            document.querySelectorAll('.testimonial').forEach(t => {
-                t.classList.remove('show');
+            document.querySelectorAll('.testimonial').forEach(testimonial => {
+                testimonial.classList.remove('show');
             });
             
-            // Show the selected one
-            const testimonial = document.getElementById('testimonial' + index);
-            if (testimonial) {
-                testimonial.classList.add('show');
-            }
-            
-            // Update dots
             document.querySelectorAll('.testimonial-dot').forEach(dot => {
                 dot.classList.remove('active');
             });
             
-            const activeDot = document.querySelector('.testimonial-dot[data-testimonial="' + index + '"]');
-            if (activeDot) {
-                activeDot.classList.add('active');
-            }
+            document.getElementById('testimonial' + index).classList.add('show');
+            document.querySelector(`.testimonial-dot[data-testimonial="${index}"]`).classList.add('active');
             
             currentTestimonial = index;
         }
         
         function startTestimonialRotation() {
-            // Clear any existing interval
-            if (testimonialInterval) {
-                clearInterval(testimonialInterval);
-            }
-            
-            // Set up new interval (6 seconds)
             testimonialInterval = setInterval(() => {
-                if (!isPaused) {
-                    showTestimonial(currentTestimonial + 1);
-                }
-            }, 6000);
+                let nextTestimonial = currentTestimonial + 1;
+                if (nextTestimonial > 15) nextTestimonial = 1;
+                showTestimonial(nextTestimonial);
+            }, 8000);
         }
         
         function setupTestimonialDots() {
             document.querySelectorAll('.testimonial-dot').forEach(dot => {
-                dot.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    isPaused = true;
-                    
-                    // Resume after 10 seconds of inactivity
-                    setTimeout(() => {
-                        isPaused = false;
-                    }, 10000);
-                    
-                    const testimonialIndex = parseInt(dot.getAttribute('data-testimonial'));
-                    showTestimonial(testimonialIndex);
+                dot.addEventListener('click', function() {
+                    clearInterval(testimonialInterval);
+                    showTestimonial(this.dataset.testimonial);
+                    startTestimonialRotation();
                 });
             });
-            
-            // Pause when hovering over testimonials
-            document.querySelector('.testimonial-container').addEventListener('mouseenter', () => {
-                isPaused = true;
-            });
-            
-            document.querySelector('.testimonial-container').addEventListener('mouseleave', () => {
-                isPaused = false;
-            });
         }
         
-        // ===== REFERRAL TEXT ROTATION =====
+        // Referral text rotation
         const referralTexts = [
             "Earn ₦5,000 for each friend who signs up and watches 20 ads!",
-            "Share your link with 6 friends to unlock AI Trading!",
-            "Get ₦30,000 trading capital from 6 successful referrals!",
-            "Your friends get ₦5,000 too when they sign up with your link!",
-            "The more you refer, the more you earn - start sharing today!",
-            "Limited time offer: Complete 6 referrals for bonus ₦20,000!",
-            "Referral earnings paid directly to your Nigerian bank account!",
-            "Nigerians are earning ₦7,000-₦17,500 daily with our AI trading!",
-            "Your referrals help build the Nigerian digital economy!",
-            "Share with friends and family - everyone benefits!"
+            "Complete 6 referrals to unlock AI trading and earn ₦7,000-₦17,500 daily!",
+            "Share your link on WhatsApp groups for quick referrals!",
+            "Your friends get ₦5,000 starting balance too!",
+            "Limited time offer: Refer 6 friends in 24 hours for ₦20,000 bonus!"
         ];
         
-        let currentReferralTextIndex = 0;
+        let currentReferralText = 0;
         
         function rotateReferralText() {
-            const rotator = document.getElementById('referralTextRotator');
-            if (rotator) {
-                rotator.textContent = referralTexts[currentReferralTextIndex];
-                currentReferralTextIndex = (currentReferralTextIndex + 1) % referralTexts.length;
+            setInterval(() => {
+                currentReferralText = (currentReferralText + 1) % referralTexts.length;
+                const textElement = document.getElementById('referralTextRotator');
+                
+                // Fade out
+                textElement.style.opacity = '0';
+                
+                setTimeout(() => {
+                    // Change text
+                    textElement.textContent = referralTexts[currentReferralText];
+                    
+                    // Fade in
+                    textElement.style.opacity = '1';
+                }, 500);
+            }, 5000);
+        }
+        
+        // Simulate trading activity
+        function simulateTrading() {
+            if (userData.tradingActive) {
+                // Calculate daily profit (20-50% of trading capital)
+                const profitRate = 0.2 + (Math.random() * 0.3); // 20-50%
+                const dailyProfit = Math.round(userData.tradingCapital * profitRate / 30); // Daily profit (monthly rate / 30)
+                
+                userData.dailyProfit = dailyProfit;
+                userData.totalProfit = (userData.totalProfit || 0) + dailyProfit;
+                userData.withdrawableProfit = (userData.withdrawableProfit || 0) + (dailyProfit * 0.7); // 70% of profit goes to user
+                userData.balance += dailyProfit * 0.7;
+                
+                // Save user data
+                saveUserData();
+                
+                // Update UI
+                updateUI();
+                
+                // Show notification
+                showNotification(`🤖 AI Trading generated ₦${dailyProfit.toLocaleString()} profit!`);
             }
         }
         
-        // Start rotating referral texts every 8 seconds
-        setInterval(rotateReferralText, 8000);
-
-        function redirectToFutureInvestment() {
-            // Switch to the Info tab
-            document.querySelector('.tab[data-tab="info"]').click();
-            // Scroll to the Future Investment Opportunities section
-            document.querySelector('.investment-section').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Listen for notifications from admin.html
-        window.addEventListener('message', function(event) {
-            if (event.data.type === 'adminNotification') {
-                const redDot = document.getElementById('redDot');
-                redDot.style.display = 'block'; // Show the blinking red dot
+        // Update login streak
+        function updateLoginStreak() {
+            const today = new Date().toDateString();
+            
+            if (!userData.streak) {
+                userData.streak = {
+                    count: 0,
+                    lastLogin: null,
+                    bonus: 0
+                };
             }
-        });
-
-        // Hide the red dot when the bell is clicked
-        document.getElementById('notificationBell').addEventListener('click', function() {
-            const redDot = document.getElementById('redDot');
-            redDot.style.display = 'none'; // Hide the red dot
-        });
-
-        // Example: Simulate receiving a notification from admin.html
-        setTimeout(() => {
-            window.postMessage({ type: 'adminNotification', message: 'Check out the latest updates!' }, '*');
-        }, 5000);
+            
+            if (userData.streak.lastLogin !== today) {
+                // Check if this is consecutive day
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayString = yesterday.toDateString();
+                
+                if (userData.streak.lastLogin === yesterdayString) {
+                    // Consecutive day - increase streak
+                    userData.streak.count++;
+                } else {
+                    // Not consecutive - reset streak
+                    userData.streak.count = 1;
+                }
+                
+                // Calculate bonus (₦500 on day 1, +₦100 each day, max ₦1,100 on day 7)
+                userData.streak.bonus = Math.min(500 + ((userData.streak.count - 1) * 100), 1100);
+                
+                // Add bonus to balance
+                userData.balance += userData.streak.bonus;
+                
+                // Update last login
+                userData.streak.lastLogin = today;
+                
+                // Save user data
+                saveUserData();
+                
+                // Show notification
+                showNotification(`🔥 Day ${userData.streak.count} streak! ₦${userData.streak.bonus} bonus added.`);
+            }
+            
+            // Update streak calendar
+            updateStreakCalendar();
+        }
+        
+        // Toggle FAQ items
+        function toggleFaq(id) {
+            const faqAnswer = document.getElementById('faq' + id);
+            const faqQuestion = faqAnswer.previousElementSibling;
+            
+            if (faqAnswer.classList.contains('show')) {
+                faqAnswer.classList.remove('show');
+                faqQuestion.querySelector('span').textContent = '+';
+            } else {
+                // Close all other FAQs
+                document.querySelectorAll('.faq-answer').forEach(item => {
+                    item.classList.remove('show');
+                    item.previousElementSibling.querySelector('span').textContent = '+';
+                });
+                
+                // Open this FAQ
+                faqAnswer.classList.add('show');
+                faqQuestion.querySelector('span').textContent = '-';
+            }
+        }
+        
+        // Share on social media
+        function shareOnSocialMedia(platform) {
+            const refLink = `https://t.me/AIREFTRADERSbot?start=${tg?.initDataUnsafe?.user?.id || 'demo-user'}`;
+            const message = "Join AI REF-TRADERS and earn daily profits from AI trading! Use my referral link:";
+            
+            let shareUrl = '';
+            
+            switch (platform) {
+                case 'whatsapp':
+                    shareUrl = `https://wa.me/?text=${encodeURIComponent(message + ' ' + refLink)}`;
+                    break;
+                case 'facebook':
+                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(refLink)}&quote=${encodeURIComponent(message)}`;
+                    break;
+                case 'twitter':
+                    shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message + ' ' + refLink)}`;
+                    break;
+                case 'telegram':
+                    shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent(message)}`;
+                    break;
+                case 'instagram':
+                    // Instagram doesn't support direct sharing via URL, show a notification instead
+                    showNotification('Copy the link and share it on Instagram!');
+                    navigator.clipboard.writeText(refLink);
+                    return;
+            }
+            
+            if (shareUrl) {
+                window.open(shareUrl, '_blank');
+            }
+        }
+        
+        // Check if user has admin access
+        function checkAdminAccess() {
+            // In a real app, this would check against server-side permissions
+            const isAdmin = tg?.initDataUnsafe?.user?.username === 'admin' || true; // For demo purposes
+            
+            if (isAdmin) {
+                document.getElementById('adminPanelBtn').style.display = 'block';
+            }
+        }
+        
+        // Redirect to future investment section
+        function redirectToFutureInvestment() {
+            document.getElementById('depositModal').classList.remove('active');
+            
+            // Switch to info tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('.tab[data-tab="info"]').classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('infoTab').classList.add('active');
+            
+            // Scroll to investment section
+            setTimeout(() => {
+                document.querySelector('.investment-section').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
     </script>
-    <script src="js/paystack-integration.js"></script>
-    <script src="js/batch-processing.js"></script>
-    <script src="js/admin-integration.js"></script>
-    <!-- Telegram Authentication Scripts -->
-    <script src="js/telegram-auth.js"></script>
-    <script src="js/auth-check.js"></script>
-    <script src="js/app-init.js"></script>
 </body>
 </html>
