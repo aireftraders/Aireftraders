@@ -448,6 +448,50 @@
             display: none;
         }
         
+        /* Naira Chase Game Styles */
+        #nairaChaseCanvas {
+            display: block;
+            background: linear-gradient(to bottom, #008751 0%, #1a8bb3 100%);
+            margin: 0 auto;
+            border-radius: 8px;
+        }
+        
+        #nairaChaseGameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 10;
+        }
+        
+        #nairaChaseScore {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        #nairaChaseStart {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
         /* Notification Styles */
         .notification {
             position: fixed;
@@ -735,6 +779,14 @@
                 <div class="attempts-counter">Attempts: <span id="ayoAttemptsDisplay">10</span>/10</div>
                 <button class="primary" style="margin-top: 10px;">Play Now</button>
             </div>
+            
+            <div class="game-card" data-game="nairaChase">
+                <div class="game-card-icon">🦅</div>
+                <div class="game-card-title">Naira Chase</div>
+                <div class="game-card-desc">Collect rolling Naira coins with the Nigerian eagle</div>
+                <div class="attempts-counter">Attempts: <span id="nairaChaseAttemptsDisplay">10</span>/10</div>
+                <button class="primary" style="margin-top: 10px;">Play Now</button>
+            </div>
         </div>
         
         <div class="game-container" id="memoryGame">
@@ -886,6 +938,36 @@
             
             <button class="secondary" id="backToGames6" style="width: 100%; margin-top: 15px;">← Back to Games</button>
         </div>
+        
+        <div class="game-container" id="nairaChaseGame">
+            <h3>🦅 Naira Chase</h3>
+            <p>Collect rolling Naira coins with the Nigerian eagle</p>
+            <p class="attempts-counter">Attempts left: <span id="nairaChaseAttempts">10</span>/10</p>
+            
+            <div style="position: relative;">
+                <canvas id="nairaChaseCanvas" width="400" height="500"></canvas>
+                <div id="nairaChaseScore">₦0</div>
+                <div id="nairaChaseGameOver">
+                    <h2>Game Over!</h2>
+                    <p>Total Collected: <span id="nairaChaseFinalScore">₦0</span></p>
+                    <button id="restartNairaChaseButton">Play Again</button>
+                </div>
+                <div id="nairaChaseStart">
+                    <h2>Naira Chase</h2>
+                    <p>Tap to make the eagle fly</p>
+                    <p>Collect rolling Naira coins</p>
+                    <p>Avoid falling into ditches!</p>
+                    <button id="startNairaChaseButton">Start Game</button>
+                </div>
+            </div>
+            
+            <div class="game-stats">
+                <p>🎯 Score: <span id="nairaChaseGameScore">0</span></p>
+                <p>💰 Earned: ₦<span id="nairaChaseGameEarnings">0</span></p>
+            </div>
+            
+            <button class="secondary" id="backToGames7" style="width: 100%; margin-top: 15px;">← Back to Games</button>
+        </div>
     </div>
     
     <!-- Navigation Bar -->
@@ -951,6 +1033,7 @@
             trivia: { attempts: 10, correct: 0, earnings: 0, usedQuestions: [] },
             wheel: { attempts: 10, wins: 0, earnings: 0 },
             ayo: { attempts: 10, wins: 0, earnings: 0 },
+            nairaChase: { attempts: 10, score: 0, earnings: 0 },
             lastAccessTime: 0,
             adsWatched: 0,
             gameTimerStart: 0
@@ -1005,6 +1088,7 @@
                     gameState.trivia.attempts = 10;
                     gameState.wheel.attempts = 10;
                     gameState.ayo.attempts = 10;
+                    gameState.nairaChase.attempts = 10;
                     gameState.lastAccessTime = now;
 
                     // Reset game earnings and wins for fresh session
@@ -1021,6 +1105,8 @@
                     gameState.wheel.earnings = 0;
                     gameState.ayo.wins = 0;
                     gameState.ayo.earnings = 0;
+                    gameState.nairaChase.score = 0;
+                    gameState.nairaChase.earnings = 0;
 
                     // Start game timer
                     gameState.gameTimerStart = now;
@@ -1037,6 +1123,7 @@
                         gameState.trivia.attempts = savedData.gameState.trivia?.attempts || 10;
                         gameState.wheel.attempts = savedData.gameState.wheel?.attempts || 10;
                         gameState.ayo.attempts = savedData.gameState.ayo?.attempts || 10;
+                        gameState.nairaChase.attempts = savedData.gameState.nairaChase?.attempts || 10;
 
                         // Keep other stats too
                         gameState.memory.wins = savedData.gameState.memory?.wins || 0;
@@ -1052,6 +1139,8 @@
                         gameState.wheel.earnings = savedData.gameState.wheel?.earnings || 0;
                         gameState.ayo.wins = savedData.gameState.ayo?.wins || 0;
                         gameState.ayo.earnings = savedData.gameState.ayo?.earnings || 0;
+                        gameState.nairaChase.score = savedData.gameState.nairaChase?.score || 0;
+                        gameState.nairaChase.earnings = savedData.gameState.nairaChase?.earnings || 0;
                     }
 
                     // Check if game timer is still active
@@ -1158,6 +1247,11 @@
                             attempts: gameState.ayo.attempts, 
                             wins: gameState.ayo.wins, 
                             earnings: gameState.ayo.earnings 
+                        },
+                        nairaChase: {
+                            attempts: gameState.nairaChase.attempts,
+                            score: gameState.nairaChase.score,
+                            earnings: gameState.nairaChase.earnings
                         },
                         lastAccessTime: gameState.lastAccessTime
                     },
@@ -1276,6 +1370,12 @@
             document.getElementById('ayoAttemptsDisplay').textContent = gameState.ayo.attempts;
             document.getElementById('ayoWins').textContent = gameState.ayo.wins;
             document.getElementById('ayoEarnings').textContent = gameState.ayo.earnings;
+            
+            // Naira Chase game
+            document.getElementById('nairaChaseAttempts').textContent = gameState.nairaChase.attempts;
+            document.getElementById('nairaChaseAttemptsDisplay').textContent = gameState.nairaChase.attempts;
+            document.getElementById('nairaChaseGameScore').textContent = gameState.nairaChase.score;
+            document.getElementById('nairaChaseGameEarnings').textContent = gameState.nairaChase.earnings;
         }
 
         // ========================
@@ -2085,6 +2185,434 @@
             }
         };
 
+        // Naira Chase Game
+        const nairaChaseGame = {
+            canvas: null,
+            ctx: null,
+            gameRunning: false,
+            score: 0,
+            speed: 5,
+            gravity: 0.4,
+            obstacleFrequency: 2000,
+            coinFrequency: 800,
+            lastObstacleTime: 0,
+            lastCoinTime: 0,
+            gameTime: 0,
+            frameCount: 0,
+            
+            // Bird properties
+            bird: {
+                x: 100,
+                y: 250,
+                width: 60,
+                height: 40,
+                velocity: 0,
+                rotation: 0,
+                wingAngle: 0,
+                wingSpeed: 0.2,
+                color: '#008751',
+                wingColor: '#FFFFFF',
+                jumpPower: 9,
+                
+                jump: function() {
+                    this.velocity = -this.jumpPower;
+                    this.wingAngle = Math.PI/4;
+                },
+                
+                update: function() {
+                    // Apply gravity
+                    this.velocity += nairaChaseGame.gravity;
+                    this.y += this.velocity;
+                    
+                    // Wing animation
+                    this.wingAngle += this.wingSpeed;
+                    if (this.wingAngle > Math.PI/4 || this.wingAngle < -Math.PI/4) {
+                        this.wingSpeed *= -1;
+                    }
+                    
+                    // Rotation based on velocity
+                    this.rotation = Math.min(Math.max(this.velocity * 0.1, -Math.PI/4), Math.PI/4);
+                },
+                
+                draw: function() {
+                    nairaChaseGame.ctx.save();
+                    nairaChaseGame.ctx.translate(this.x, this.y);
+                    nairaChaseGame.ctx.rotate(this.rotation);
+                    
+                    // Draw body
+                    nairaChaseGame.ctx.fillStyle = this.color;
+                    nairaChaseGame.ctx.beginPath();
+                    nairaChaseGame.ctx.ellipse(0, 0, this.width/2, this.height/2, 0, 0, Math.PI * 2);
+                    nairaChaseGame.ctx.fill();
+                    
+                    // Draw wings
+                    nairaChaseGame.ctx.fillStyle = this.wingColor;
+                    nairaChaseGame.ctx.save();
+                    nairaChaseGame.ctx.rotate(this.wingAngle);
+                    nairaChaseGame.ctx.beginPath();
+                    nairaChaseGame.ctx.ellipse(-15, 0, 20, 8, 0, 0, Math.PI * 2);
+                    nairaChaseGame.ctx.fill();
+                    nairaChaseGame.ctx.restore();
+                    
+                    nairaChaseGame.ctx.save();
+                    nairaChaseGame.ctx.rotate(-this.wingAngle);
+                    nairaChaseGame.ctx.beginPath();
+                    nairaChaseGame.ctx.ellipse(-15, 0, 20, 8, 0, 0, Math.PI * 2);
+                    nairaChaseGame.ctx.fill();
+                    nairaChaseGame.ctx.restore();
+                    
+                    // Draw beak
+                    nairaChaseGame.ctx.fillStyle = '#FFD700';
+                    nairaChaseGame.ctx.beginPath();
+                    nairaChaseGame.ctx.moveTo(this.width/2, 0);
+                    nairaChaseGame.ctx.lineTo(this.width/2 + 15, -5);
+                    nairaChaseGame.ctx.lineTo(this.width/2 + 15, 5);
+                    nairaChaseGame.ctx.closePath();
+                    nairaChaseGame.ctx.fill();
+                    
+                    nairaChaseGame.ctx.restore();
+                },
+                
+                reset: function() {
+                    this.y = 250;
+                    this.velocity = 0;
+                    this.rotation = 0;
+                },
+                
+                getBounds: function() {
+                    return {
+                        left: this.x - this.width/2,
+                        right: this.x + this.width/2,
+                        top: this.y - this.height/2,
+                        bottom: this.y + this.height/2
+                    };
+                }
+            },
+            
+            // Ground properties
+            ground: {
+                height: 60,
+                draw: function() {
+                    // Draw ground
+                    nairaChaseGame.ctx.fillStyle = '#5D4037';
+                    nairaChaseGame.ctx.fillRect(0, nairaChaseGame.canvas.height - this.height, nairaChaseGame.canvas.width, this.height);
+                    
+                    // Draw grass on top
+                    nairaChaseGame.ctx.fillStyle = '#388E3C';
+                    nairaChaseGame.ctx.beginPath();
+                    nairaChaseGame.ctx.moveTo(0, nairaChaseGame.canvas.height - this.height);
+                    for (let x = 0; x < nairaChaseGame.canvas.width; x += 20) {
+                        const height = 5 + Math.sin(x/30 + nairaChaseGame.gameTime/200) * 5;
+                        nairaChaseGame.ctx.lineTo(x, nairaChaseGame.canvas.height - this.height - height);
+                    }
+                    nairaChaseGame.ctx.lineTo(nairaChaseGame.canvas.width, nairaChaseGame.canvas.height - this.height);
+                    nairaChaseGame.ctx.closePath();
+                    nairaChaseGame.ctx.fill();
+                }
+            },
+            
+            // Obstacles (ditches)
+            obstacles: [],
+            
+            createObstacle: function() {
+                const width = 120 + Math.random() * 180;
+                const safeMargin = 300; // Minimum distance between obstacles
+                
+                // Check if last obstacle is far enough
+                if (this.obstacles.length > 0) {
+                    const lastObstacle = this.obstacles[this.obstacles.length - 1];
+                    if (lastObstacle.x + lastObstacle.width > this.canvas.width - safeMargin) {
+                        return;
+                    }
+                }
+                
+                this.obstacles.push({
+                    x: this.canvas.width,
+                    width: width,
+                    passed: false
+                });
+            },
+            
+            // Coins (Naira)
+            coins: [],
+            coinValues: [50, 100, 200, 500, 1000],
+            
+            createCoin: function() {
+                const valueIndex = Math.min(Math.floor(this.score / 1000), this.coinValues.length - 1);
+                const y = this.canvas.height - this.ground.height - 30 - Math.random() * 100;
+                
+                this.coins.push({
+                    x: this.canvas.width,
+                    y: y,
+                    radius: 15 + valueIndex * 2, // Bigger coins for higher values
+                    value: this.coinValues[valueIndex],
+                    rotation: 0,
+                    rotationSpeed: 0.1 + Math.random() * 0.2,
+                    collected: false,
+                    collectTime: 0,
+                    floatOffset: Math.random() * Math.PI * 2
+                });
+            },
+            
+            init: function() {
+                this.canvas = document.getElementById('nairaChaseCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Set canvas size
+                this.canvas.width = 400;
+                this.canvas.height = 500;
+                
+                // Event listeners
+                this.canvas.addEventListener('click', () => {
+                    if (this.gameRunning) {
+                        this.bird.jump();
+                    }
+                });
+                
+                document.getElementById('startNairaChaseButton').addEventListener('click', () => {
+                    if (gameState.nairaChase.attempts <= 0) {
+                        showNotification('Naira Chase attempts exhausted.');
+                        return;
+                    }
+                    
+                    this.startGame();
+                    document.getElementById('nairaChaseStart').style.display = 'none';
+                    document.getElementById('clickSound').play();
+                });
+                
+                document.getElementById('restartNairaChaseButton').addEventListener('click', () => {
+                    if (gameState.nairaChase.attempts <= 0) {
+                        showNotification('Naira Chase attempts exhausted.');
+                        return;
+                    }
+                    
+                    this.startGame();
+                    document.getElementById('nairaChaseGameOver').style.display = 'none';
+                });
+                
+                document.getElementById('backToGames7').addEventListener('click', () => {
+                    this.endGame();
+                    showGame('');
+                });
+                
+                // Initial setup
+                document.getElementById('nairaChaseStart').style.display = 'block';
+                document.getElementById('nairaChaseGameOver').style.display = 'none';
+            },
+            
+            startGame: function() {
+                this.gameRunning = true;
+                this.score = 0;
+                this.speed = 5;
+                this.obstacles = [];
+                this.coins = [];
+                this.bird.reset();
+                this.lastObstacleTime = 0;
+                this.lastCoinTime = 0;
+                this.gameTime = 0;
+                this.frameCount = 0;
+                
+                document.getElementById('nairaChaseScore').textContent = '₦0';
+                
+                this.animate();
+            },
+            
+            endGame: function() {
+                this.gameRunning = false;
+                document.getElementById('nairaChaseFinalScore').textContent = `₦${this.score}`;
+                
+                // Update game state
+                gameState.nairaChase.attempts--;
+                gameState.nairaChase.score += this.score;
+                gameState.nairaChase.earnings += this.score;
+                updateBalance(this.score);
+                updateGameUI();
+                saveGameState();
+                
+                if (gameState.nairaChase.attempts <= 0) {
+                    showNotification('Naira Chase attempts exhausted.');
+                }
+            },
+            
+            checkCollision: function() {
+                const birdBounds = this.bird.getBounds();
+                
+                // Check ground collision
+                if (birdBounds.bottom >= this.canvas.height - this.ground.height) {
+                    return true;
+                }
+                
+                // Check obstacle collisions
+                for (const obstacle of this.obstacles) {
+                    if (birdBounds.right > obstacle.x && 
+                        birdBounds.left < obstacle.x + obstacle.width &&
+                        birdBounds.bottom > this.canvas.height - this.ground.height) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            },
+            
+            drawNairaCoin: function(coin) {
+                this.ctx.rotate(coin.rotation);
+                
+                // Coin base
+                const gradient = this.ctx.createRadialGradient(0, 0, coin.radius/2, 0, 0, coin.radius);
+                gradient.addColorStop(0, '#FFD700');
+                gradient.addColorStop(1, '#FFA500');
+                this.ctx.fillStyle = gradient;
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, coin.radius, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Coin edge
+                this.ctx.strokeStyle = '#B8860B';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+                
+                // Naira symbol
+                this.ctx.fillStyle = '#000000';
+                this.ctx.font = `bold ${coin.radius}px Arial`;
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText('₦', 0, 0);
+            },
+            
+            animate: function() {
+                if (!this.gameRunning) return;
+                
+                this.frameCount++;
+                this.gameTime = Date.now();
+                
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Update and draw ground
+                this.ground.draw();
+                
+                // Update and draw bird
+                this.bird.update();
+                this.bird.draw();
+                
+                // Create new obstacles
+                if (this.gameTime - this.lastObstacleTime > this.obstacleFrequency) {
+                    this.createObstacle();
+                    this.lastObstacleTime = this.gameTime;
+                }
+                
+                // Create new coins
+                if (this.gameTime - this.lastCoinTime > this.coinFrequency) {
+                    this.createCoin();
+                    this.lastCoinTime = this.gameTime;
+                }
+                
+                // Update and draw obstacles
+                for (let i = this.obstacles.length - 1; i >= 0; i--) {
+                    const obstacle = this.obstacles[i];
+                    obstacle.x -= this.speed;
+                    
+                    // Draw ditch (with perspective)
+                    this.ctx.fillStyle = '#3E2723';
+                    this.ctx.fillRect(obstacle.x, this.canvas.height - this.ground.height, obstacle.width, this.ground.height);
+                    
+                    // Draw ditch edges
+                    this.ctx.strokeStyle = '#5D4037';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(obstacle.x, this.canvas.height - this.ground.height);
+                    this.ctx.lineTo(obstacle.x + obstacle.width * 0.1, this.canvas.height - this.ground.height - 10);
+                    this.ctx.lineTo(obstacle.x + obstacle.width * 0.9, this.canvas.height - this.ground.height - 10);
+                    this.ctx.lineTo(obstacle.x + obstacle.width, this.canvas.height - this.ground.height);
+                    this.ctx.stroke();
+                    
+                    // Remove off-screen obstacles
+                    if (obstacle.x + obstacle.width < 0) {
+                        this.obstacles.splice(i, 1);
+                    }
+                }
+                
+                // Update and draw coins
+                for (let i = this.coins.length - 1; i >= 0; i--) {
+                    const coin = this.coins[i];
+                    coin.x -= this.speed;
+                    coin.rotation += coin.rotationSpeed;
+                    
+                    // Floating animation
+                    const floatY = Math.sin(this.gameTime/300 + coin.floatOffset) * 5;
+                    
+                    if (coin.collected) {
+                        // Coin collection animation
+                        coin.collectTime++;
+                        const scale = 1 + coin.collectTime * 0.1;
+                        const alpha = 1 - coin.collectTime * 0.05;
+                        
+                        this.ctx.save();
+                        this.ctx.translate(coin.x, coin.y + floatY);
+                        this.ctx.scale(scale, scale);
+                        this.ctx.globalAlpha = alpha;
+                        
+                        // Draw coin with collection effect
+                        this.drawNairaCoin(coin);
+                        
+                        this.ctx.restore();
+                        
+                        // Remove after animation
+                        if (coin.collectTime > 20) {
+                            this.coins.splice(i, 1);
+                        }
+                    } else {
+                        // Normal coin drawing
+                        this.ctx.save();
+                        this.ctx.translate(coin.x, coin.y + floatY);
+                        this.drawNairaCoin(coin);
+                        this.ctx.restore();
+                        
+                        // Check collision with bird
+                        const birdBounds = this.bird.getBounds();
+                        const dx = this.bird.x - coin.x;
+                        const dy = this.bird.y - (coin.y + floatY);
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < this.bird.width/2 + coin.radius) {
+                            coin.collected = true;
+                            this.score += coin.value;
+                            document.getElementById('nairaChaseScore').textContent = `₦${this.score}`;
+                            document.getElementById('coinLandSound').play();
+                        }
+                    }
+                    
+                    // Remove off-screen coins
+                    if (coin.x + coin.radius < 0 && !coin.collected) {
+                        this.coins.splice(i, 1);
+                    }
+                }
+                
+                // Draw coin value indicators
+                for (const coin of this.coins) {
+                    if (!coin.collected && this.frameCount % 30 < 15) {
+                        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                        this.ctx.font = 'bold 16px Arial';
+                        this.ctx.textAlign = 'center';
+                        this.ctx.fillText(`₦${coin.value}`, coin.x, coin.y - coin.radius - 10);
+                    }
+                }
+                
+                // Check for collisions
+                if (this.checkCollision()) {
+                    document.getElementById('nairaChaseGameOver').style.display = 'block';
+                    this.endGame();
+                    return;
+                }
+                
+                // Increase difficulty
+                this.speed = 5 + Math.floor(this.score / 2000) * 0.5;
+                this.obstacleFrequency = Math.max(800, 2000 - Math.floor(this.score / 500) * 100);
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        };
+
         // ========================
         // INITIALIZATION
         // ========================
@@ -2105,6 +2633,7 @@
             triviaGame.init();
             wheelGame.init();
             ayoGame.init();
+            nairaChaseGame.init();
             
             // Update UI with current state
             updateGameUI();
@@ -2142,6 +2671,7 @@
             document.getElementById('backToGames4').addEventListener('click', () => showGame(''));
             document.getElementById('backToGames5').addEventListener('click', () => showGame(''));
             document.getElementById('backToGames6').addEventListener('click', () => showGame(''));
+            document.getElementById('backToGames7').addEventListener('click', () => showGame(''));
             
             // Update FOMO timer
             setInterval(() => {
