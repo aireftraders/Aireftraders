@@ -37,13 +37,10 @@
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     
     <title>AI REF-TRADERS - #1 Online Income Platform for Nigerians</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Include Dexie.js for IndexedDB -->
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
     <!-- Include Paystack Payment -->
     <script src="https://js.paystack.co/v1/inline.js"></script>
-    <!-- Add Paystack Integration Script -->
-    <script src="js/paystack-integration.js"></script>
     <style>
         /* Splash Screen Styles */
         .splash-screen {
@@ -924,6 +921,107 @@
             resize: vertical;
         }
         
+        /* Login Modal Styles */
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .login-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .login-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .login-tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .login-tab.active {
+            border-bottom: 3px solid var(--primary);
+            font-weight: bold;
+        }
+        
+        .login-form {
+            display: none;
+        }
+        
+        .login-form.active {
+            display: block;
+        }
+        
+        .login-form input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        .login-form button {
+            width: 100%;
+        }
+        
+        .social-login {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .social-login-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .social-login-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .google-btn {
+            background: #DB4437;
+        }
+        
+        .facebook-btn {
+            background: #4267B2;
+        }
+        
+        .twitter-btn {
+            background: #1DA1F2;
+        }
+        
+        .phone-btn {
+            background: #25D366;
+        }
+        
         /* Responsive Design */
         @media (max-width: 600px) {
             .card-grid {
@@ -940,6 +1038,15 @@
             
             .cost-table th, .cost-table td {
                 padding: 8px 10px;
+            }
+            
+            .login-content {
+                padding: 15px;
+            }
+            
+            .login-tab {
+                padding: 8px 12px;
+                font-size: 14px;
             }
         }
         
@@ -1219,7 +1326,7 @@
         .notification-bell {
             position: fixed;
             top: 10px;
-            right: 10px;
+            right: 60px;
             z-index: 1200;
             font-size: 24px;
             color: var(--text-color);
@@ -1277,6 +1384,40 @@
         </div>
     </div>
 
+    <!-- Login Modal -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-content">
+            <div class="login-tabs">
+                <div class="login-tab active" data-tab="login">Login</div>
+                <div class="login-tab" data-tab="register">Register</div>
+            </div>
+            
+            <div id="loginForm" class="login-form active">
+                <input type="email" id="loginEmail" placeholder="Email">
+                <input type="password" id="loginPassword" placeholder="Password">
+                <button class="primary" id="loginBtn">Login</button>
+                <div class="social-login">
+                    <p>Or login with:</p>
+                    <div class="social-login-buttons">
+                        <div class="social-login-btn google-btn" id="googleLogin">G</div>
+                        <div class="social-login-btn facebook-btn" id="facebookLogin">f</div>
+                        <div class="social-login-btn twitter-btn" id="twitterLogin">𝕏</div>
+                        <div class="social-login-btn phone-btn" id="phoneLogin">📱</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="registerForm" class="login-form">
+                <input type="text" id="registerName" placeholder="Full Name">
+                <input type="email" id="registerEmail" placeholder="Email">
+                <input type="tel" id="registerPhone" placeholder="Phone Number">
+                <input type="password" id="registerPassword" placeholder="Password">
+                <input type="password" id="registerConfirmPassword" placeholder="Confirm Password">
+                <button class="primary" id="registerBtn">Register</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Theme Toggle Button -->
     <div class="theme-toggle">
         <button class="theme-toggle-btn" id="themeToggle">
@@ -1301,7 +1442,7 @@
         <div class="red-dot" id="redDot"></div>
     </div>
 
-    <div class="container">
+    <div class="container" id="mainContent" style="display: none;">
         <div class="app-bar">
             <h1>AI REF-TRADERS <span class="nigeria-badge">100% NIGERIAN</span></h1>
             <div class="user-chip">
@@ -1395,7 +1536,6 @@
                                 <div class="social-share-icon whatsapp" id="shareWhatsApp">📱</div>
                                 <div class="social-share-icon facebook" id="shareFacebook">📘</div>
                                 <div class="social-share-icon twitter" id="shareTwitter">🐦</div>
-                                <div class="social-share-icon telegram" id="shareTelegram">✈️</div>
                                 <div class="social-share-icon instagram" id="shareInstagram">📷</div>
                             </div>
                         </div>
@@ -2055,12 +2195,47 @@
     <button id="adminPanelBtn" style="display: none;" class="primary">Admin Panel</button>
     
     <script>
+        // Check if user has already seen the splash screen in this session
+        document.addEventListener('DOMContentLoaded', function() {
+            const splashScreen = document.getElementById('splashScreen');
+            
+            // Check if user is logged in
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            
+            // Check if user has already seen the splash screen in this session
+            const hasSeenSplash = sessionStorage.getItem('hasSeenSplash') === 'true';
+            
+            // Check if we're navigating back from another page
+            const isNavigatingBack = document.referrer.includes('trading.html') || 
+                                    document.referrer.includes('game.html') || 
+                                    document.referrer.includes('ads.html') || 
+                                    document.referrer.includes('admin.html');
+            
+            if (isLoggedIn) {
+                // User is logged in, hide splash and login modal, show main content
+                splashScreen.style.display = 'none';
+                document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                loadUserData();
+            } else if (hasSeenSplash || isNavigatingBack) {
+                // Hide splash screen immediately
+                splashScreen.style.display = 'none';
+                document.getElementById('loginModal').style.display = 'flex';
+                console.log('Splash screen hidden - already seen or navigating back');
+            } else {
+                // Show splash screen and mark as seen
+                initSplashScreen();
+                sessionStorage.setItem('hasSeenSplash', 'true');
+                console.log('Showing splash screen - first visit');
+            }
+        });
+
         // Initialize Dexie database
         const db = new Dexie("AI_REF_TRADERS_DB");
         
         // Define database schema
         db.version(1).stores({
-            users: '++id, telegramId, balance, referrals, adsWatched, totalAdsWatched, verified, tradingActive, tradingCapital, dailyProfit, totalProfit, withdrawableProfit, bankDetails, paymentCircle, gameEarnings, lastAdWatchTime, streak, announcements, referrer',
+            users: '++id, email, phone, balance, referrals, adsWatched, totalAdsWatched, verified, tradingActive, tradingCapital, dailyProfit, totalProfit, withdrawableProfit, bankDetails, paymentCircle, gameEarnings, lastAdWatchTime, streak, announcements, referrer',
             announcements: '++id, title, content, time, unread',
             supportTickets: '++id, userId, subject, message, status, createdAt',
             adminCredentials: '++id, username, password',
@@ -2103,13 +2278,11 @@
         });
 
         // ===== CORE FUNCTIONALITY =====
-        const tg = window.Telegram.WebApp;
-        if (tg) {
-            tg.expand();
-        }
         
         // User data structure
         let userData = {
+            email: '',
+            phone: '',
             balance: 5000,
             referrals: 0,
             referralEarnings: 0,
@@ -2159,15 +2332,23 @@
         // Load user data from IndexedDB
         async function loadUserData() {
             try {
-                const userId = tg?.initDataUnsafe?.user?.id || 'demo-user';
+                const userEmail = localStorage.getItem('userEmail');
+                const userPhone = localStorage.getItem('userPhone');
+                
+                if (!userEmail && !userPhone) {
+                    // User not logged in, show login modal
+                    document.getElementById('loginModal').style.display = 'flex';
+                    return;
+                }
                 
                 // Check if user exists in database
-                let user = await db.users.where('telegramId').equals(userId).first();
+                let user = await db.users.where('email').equals(userEmail).or('phone').equals(userPhone).first();
                 
                 if (!user) {
                     // Create new user with default values
                     user = {
-                        telegramId: userId,
+                        email: userEmail,
+                        phone: userPhone,
                         balance: 5000,
                         referrals: 0,
                         adsWatched: 0,
@@ -2224,8 +2405,12 @@
         // Save user data to IndexedDB
         async function saveUserData() {
             try {
-                const userId = tg?.initDataUnsafe?.user?.id || 'demo-user';
-                await db.users.where('telegramId').equals(userId).modify(userData);
+                const userEmail = localStorage.getItem('userEmail');
+                const userPhone = localStorage.getItem('userPhone');
+                
+                if (!userEmail && !userPhone) return;
+                
+                await db.users.where('email').equals(userEmail).or('phone').equals(userPhone).modify(userData);
             } catch (error) {
                 console.error('Error saving user data:', error);
             }
@@ -2234,8 +2419,12 @@
         // Update ads watched count
         async function updateAdsDisplay() {
             try {
-                const userId = tg?.initDataUnsafe?.user?.id || 'demo-user';
-                const user = await db.users.where('telegramId').equals(userId).first();
+                const userEmail = localStorage.getItem('userEmail');
+                const userPhone = localStorage.getItem('userPhone');
+                
+                if (!userEmail && !userPhone) return;
+                
+                const user = await db.users.where('email').equals(userEmail).or('phone').equals(userPhone).first();
                 
                 if (user) {
                     userData.adsWatched = user.adsWatched || 0;
@@ -2366,7 +2555,8 @@
         // Mark announcement as read
         async function markAnnouncementAsRead(announcementId) {
             try {
-                const userId = tg?.initDataUnsafe?.user?.id;
+                const userEmail = localStorage.getItem('userEmail');
+                const userPhone = localStorage.getItem('userPhone');
                 
                 // Update local state
                 userData.announcements.unread = userData.announcements.unread.filter(id => id !== announcementId);
@@ -2375,7 +2565,7 @@
                 }
                 
                 // Save to database
-                await db.users.where('telegramId').equals(userId).modify({
+                await db.users.where('email').equals(userEmail).or('phone').equals(userPhone).modify({
                     'announcements.read': userData.announcements.read,
                     'announcements.unread': userData.announcements.unread
                 });
@@ -2434,8 +2624,9 @@
 
                 // Update balance in IndexedDB
                 try {
-                    const userId = 'demo-user'; // Replace with actual user ID
-                    await db.users.where('telegramId').equals(userId).modify({ balance: newBalance });
+                    const userEmail = localStorage.getItem('userEmail');
+                    const userPhone = localStorage.getItem('userPhone');
+                    await db.users.where('email').equals(userEmail).or('phone').equals(userPhone).modify({ balance: newBalance });
                 } catch (error) {
                     console.error('Error updating balance in IndexedDB:', error);
                 }
@@ -2452,11 +2643,12 @@
 
         // Example: Update balance and notify game.html
         async function updateBalance(amount) {
-            const userId = 'demo-user'; // Replace with actual user ID
-            const user = await db.users.where('telegramId').equals(userId).first();
+            const userEmail = localStorage.getItem('userEmail');
+            const userPhone = localStorage.getItem('userPhone');
+            const user = await db.users.where('email').equals(userEmail).or('phone').equals(userPhone).first();
             const newBalance = (user.balance || 0) + amount;
 
-            await db.users.where('telegramId').equals(userId).modify({ balance: newBalance });
+            await db.users.where('email').equals(userEmail).or('phone').equals(userPhone).modify({ balance: newBalance });
             document.getElementById('balanceDisplay').textContent = newBalance.toLocaleString();
 
             notifyGamePage(newBalance);
@@ -2465,8 +2657,9 @@
         // Load the latest balance from IndexedDB on page load
         async function loadLatestBalance() {
             try {
-                const userId = 'demo-user'; // Replace with actual user ID
-                const user = await db.users.where('telegramId').equals(userId).first();
+                const userEmail = localStorage.getItem('userEmail');
+                const userPhone = localStorage.getItem('userPhone');
+                const user = await db.users.where('email').equals(userEmail).or('phone').equals(userPhone).first();
                 if (user) {
                     userData.balance = user.balance || 0;
                     document.getElementById('balanceDisplay').textContent = userData.balance.toLocaleString();
@@ -2593,8 +2786,15 @@
         // Function to verify account details with backend
         async function verifyAccount(accountNumber, bankCode) {
             try {
-                const response = await window.PaystackIntegration.verifyAccount(accountNumber, bankCode);
-                return response;
+                // In a real app, this would call your backend API
+                // For demo purposes, we'll simulate a successful verification
+                return { 
+                    status: true, 
+                    data: {
+                        account_name: "Verified Account",
+                        bank_name: bankCode
+                    } 
+                };
             } catch (error) {
                 console.error('Error verifying account:', error);
                 return { status: false, message: 'Failed to verify account' };
@@ -2604,14 +2804,15 @@
         // Function to initiate payment with backend
         async function initiatePayment(email, accountNumber, bankCode, accountName) {
             try {
-                const response = await window.PaystackIntegration.initiatePayment(email, accountNumber, bankCode, accountName);
-                
-                if (response.status && response.data.authorization_url) {
-                    // Redirect to Paystack payment page
-                    window.location.href = response.data.authorization_url;
-                }
-                
-                return response;
+                // In a real app, this would call your backend API which would then call Paystack
+                // For demo purposes, we'll simulate a successful payment initiation
+                return { 
+                    status: true, 
+                    data: {
+                        authorization_url: "#", // In real app, this would be the Paystack payment URL
+                        access_code: "demo_access_code"
+                    } 
+                };
             } catch (error) {
                 console.error('Error initiating payment:', error);
                 return { status: false, message: 'Failed to initiate payment' };
@@ -2629,36 +2830,18 @@
                     return { status: false, message: 'No reference found' };
                 }
                 
-                const response = await window.PaystackIntegration.verifyPayment(reference);
-                
-                if (response.status) {
-                    // Payment verified successfully
-                    // Update UI to show verification status
-                    userData.verified = true;
-                    userData.bankDetails = {
-                        bankName: response.data.bankName,
-                        accountNumber: response.data.accountNumber,
-                        accountName: response.data.accountName
-                    };
-                    
-                    // Add the ₦500 to withdrawable balance
-                    userData.withdrawableProfit = (userData.withdrawableProfit || 0) + 500;
-                    userData.balance += 500;
-                    
-                    // Save the updated data
-                    await saveUserData();
-                    
-                    // Update the UI
-                    updateUI();
-                    
-                    // Show success message
-                    showSuccess(
-                        'Verification Successful',
-                        'Your bank account has been verified and ₦500 has been added to your withdrawable balance.'
-                    );
-                }
-                
-                return response;
+                // In a real app, this would call your backend API to verify with Paystack
+                // For demo purposes, we'll simulate a successful verification
+                return { 
+                    status: true,
+                    data: {
+                        status: "success",
+                        message: "Verification successful",
+                        bankName: document.getElementById('bankName').value,
+                        accountNumber: document.getElementById('accountNumber').value,
+                        accountName: document.getElementById('accountName').value
+                    }
+                };
             } catch (error) {
                 console.error('Error verifying payment:', error);
                 return { status: false, message: 'Failed to verify payment' };
@@ -2669,28 +2852,117 @@
         async function populateBankDropdown() {
             try {
                 const bankSelect = document.getElementById('bankName');
-                const response = await window.PaystackIntegration.fetchBanks();
                 
-                if (response.status && response.data) {
-                    // Clear existing options except the first one and "Other"
-                    while (bankSelect.options.length > 2) {
-                        bankSelect.remove(1);
-                    }
-                    
-                    // Sort banks alphabetically
-                    const sortedBanks = response.data.sort((a, b) => a.name.localeCompare(b.name));
-                    
-                    // Add banks to dropdown
-                    sortedBanks.forEach(bank => {
-                        const option = document.createElement('option');
-                        option.value = bank.code;
-                        option.textContent = bank.name;
-                        bankSelect.insertBefore(option, bankSelect.lastElementChild);
-                    });
+                // In a real app, this would fetch from your backend API
+                // For demo, we'll use a static list of Nigerian banks
+                const nigerianBanks = [
+                    { code: "044", name: "Access Bank" },
+                    { code: "063", name: "Access (Diamond) Bank" },
+                    { code: "035A", name: "ALAT by WEMA" },
+                    { code: "401", name: "ASO Savings and Loans" },
+                    { code: "023", name: "Citibank Nigeria" },
+                    { code: "050", name: "Ecobank Nigeria" },
+                    { code: "562", name: "Ekondo Microfinance Bank" },
+                    { code: "070", name: "Fidelity Bank" },
+                    { code: "011", name: "First Bank of Nigeria" },
+                    { code: "214", name: "First City Monument Bank" },
+                    { code: "058", name: "Guaranty Trust Bank" },
+                    { code: "030", name: "Heritage Bank" },
+                    { code: "301", name: "Jaiz Bank" },
+                    { code: "082", name: "Keystone Bank" },
+                    { code: "50211", name: "Kuda Bank" },
+                    { code: "526", name: "Parallex Bank" },
+                    { code: "076", name: "Polaris Bank" },
+                    { code: "101", name: "Providus Bank" },
+                    { code: "221", name: "Stanbic IBTC Bank" },
+                    { code: "068", name: "Standard Chartered Bank" },
+                    { code: "232", name: "Sterling Bank" },
+                    { code: "100", name: "Suntrust Bank" },
+                    { code: "032", name: "Union Bank of Nigeria" },
+                    { code: "033", name: "United Bank For Africa" },
+                    { code: "215", name: "Unity Bank" },
+                    { code: "035", name: "Wema Bank" },
+                    { code: "057", name: "Zenith Bank" }
+                ];
+                
+                // Clear existing options except the first one and "Other"
+                while (bankSelect.options.length > 2) {
+                    bankSelect.remove(1);
                 }
+                
+                // Sort banks alphabetically
+                const sortedBanks = nigerianBanks.sort((a, b) => a.name.localeCompare(b.name));
+                
+                // Add banks to dropdown
+                sortedBanks.forEach(bank => {
+                    const option = document.createElement('option');
+                    option.value = bank.code;
+                    option.textContent = bank.name;
+                    bankSelect.insertBefore(option, bankSelect.lastElementChild);
+                });
             } catch (error) {
                 console.error('Error populating bank dropdown:', error);
             }
+        }
+
+        // Your existing splash screen initialization function
+        function initSplashScreen() {
+            const splashScreen = document.getElementById('splashScreen');
+            const progressBar = document.getElementById('progressBar');
+            const loadingText = document.getElementById('loadingText');
+            
+            // Professional loading messages
+            const loadingMessages = [
+                "Initializing secure trading environment",
+                "Connecting to banking partners",
+                "Authenticating user credentials",
+                "Loading AI prediction models",
+                "Optimizing trading algorithms",
+                "Finalizing security protocols"
+            ];
+            
+            // Simulate professional loading sequence
+            let progress = 0;
+            let currentMessage = 0;
+            
+            function updateProgress() {
+                // Increment progress with realistic variation
+                const increment = 2 + Math.random() * 3;
+                progress = Math.min(progress + increment, 100);
+                
+                progressBar.style.width = progress + '%';
+                
+                // Update loading message at specific intervals
+                const messageThresholds = [15, 30, 45, 60, 75, 90];
+                if (currentMessage < messageThresholds.length && progress >= messageThresholds[currentMessage]) {
+                    loadingText.textContent = loadingMessages[currentMessage];
+                    currentMessage++;
+                }
+                
+                if (progress < 100) {
+                    // Vary timing based on progress
+                    const timing = progress < 30 || progress > 80 ? 100 : 200;
+                    setTimeout(updateProgress, timing + Math.random() * 100);
+                } else {
+                    // Final completion
+                    loadingText.textContent = "Ready to trade";
+                    completeLoading();
+                }
+            }
+            
+            function completeLoading() {
+                // Add slight delay before transition
+                setTimeout(() => {
+                    splashScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        splashScreen.style.display = 'none';
+                        document.getElementById('loginModal').style.display = 'flex';
+                    }, 800);
+                }, 500);
+            }
+            
+            // Start loading process
+            setTimeout(updateProgress, 800);
         }
 
         // Call loadLatestBalance when the page loads
@@ -2700,7 +2972,6 @@
             
             await loadLatestBalance();
             await initializeAdminCredentials();
-            await loadUserData();
             
             // Set up theme toggle
             setupThemeToggle();
@@ -2708,9 +2979,165 @@
             // Populate bank dropdown
             populateBankDropdown();
             
+            // Set up login/register tab switching
+            document.querySelectorAll('.login-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    document.querySelectorAll('.login-form').forEach(form => {
+                        form.classList.remove('active');
+                    });
+                    
+                    const tabName = this.dataset.tab;
+                    document.getElementById(tabName + 'Form').classList.add('active');
+                });
+            });
+            
+            // Login button functionality
+            document.getElementById('loginBtn').addEventListener('click', async function() {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                if (!email || !password) {
+                    showNotification('Please enter both email and password');
+                    return;
+                }
+                
+                // In a real app, this would validate with your backend
+                // For demo purposes, we'll simulate a successful login
+                try {
+                    const user = await db.users.where('email').equals(email).first();
+                    
+                    if (!user) {
+                        showNotification('User not found. Please register first.');
+                        return;
+                    }
+                    
+                    // In a real app, you would verify the password hash
+                    // For demo, we'll just check if password is not empty
+                    if (!password) {
+                        showNotification('Invalid password');
+                        return;
+                    }
+                    
+                    // Successful login
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userEmail', email);
+                    document.getElementById('loginModal').style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'block';
+                    
+                    // Load user data
+                    loadUserData();
+                    
+                    showNotification('Login successful!');
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showNotification('Login failed. Please try again.');
+                }
+            });
+            
+            // Register button functionality
+            document.getElementById('registerBtn').addEventListener('click', async function() {
+                const name = document.getElementById('registerName').value;
+                const email = document.getElementById('registerEmail').value;
+                const phone = document.getElementById('registerPhone').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('registerConfirmPassword').value;
+                
+                if (!name || !email || !phone || !password || !confirmPassword) {
+                    showNotification('Please fill in all fields');
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    showNotification('Passwords do not match');
+                    return;
+                }
+                
+                // In a real app, this would validate with your backend
+                // For demo purposes, we'll simulate a successful registration
+                try {
+                    // Check if user already exists
+                    const existingUser = await db.users.where('email').equals(email).or('phone').equals(phone).first();
+                    
+                    if (existingUser) {
+                        showNotification('User already exists. Please login instead.');
+                        return;
+                    }
+                    
+                    // Create new user
+                    const newUser = {
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        balance: 5000,
+                        referrals: 0,
+                        adsWatched: 0,
+                        totalAdsWatched: 0,
+                        tradingActive: false,
+                        verified: false,
+                        tradingCapital: 0,
+                        dailyProfit: 0,
+                        totalProfit: 0,
+                        withdrawableProfit: 0,
+                        bankDetails: null,
+                        paymentCircle: { current: 0, total: 1000 },
+                        gameEarnings: 0,
+                        lastAdWatchTime: null,
+                        streak: {
+                            count: 0,
+                            lastLogin: null,
+                            bonus: 0
+                        },
+                        announcements: {
+                            read: [2],
+                            unread: [1]
+                        },
+                        referrer: null
+                    };
+                    
+                    await db.users.add(newUser);
+                    
+                    // Successful registration
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userEmail', email);
+                    localStorage.setItem('userPhone', phone);
+                    document.getElementById('loginModal').style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'block';
+                    
+                    // Load user data
+                    loadUserData();
+                    
+                    showNotification('Registration successful!');
+                } catch (error) {
+                    console.error('Registration error:', error);
+                    showNotification('Registration failed. Please try again.');
+                }
+            });
+            
+            // Social login buttons (demo only - would connect to proper auth in real app)
+            document.getElementById('googleLogin').addEventListener('click', function() {
+                showNotification('Google login would be implemented in production');
+            });
+            
+            document.getElementById('facebookLogin').addEventListener('click', function() {
+                showNotification('Facebook login would be implemented in production');
+            });
+            
+            document.getElementById('twitterLogin').addEventListener('click', function() {
+                showNotification('Twitter login would be implemented in production');
+            });
+            
+            document.getElementById('phoneLogin').addEventListener('click', function() {
+                showNotification('Phone number login would be implemented in production');
+            });
+            
             // Set up event listeners for buttons
             document.getElementById('copyLink').addEventListener('click', function() {
-                const refLink = `https://t.me/AIREFTRADERSbot?start=${tg?.initDataUnsafe?.user?.id || 'demo-user'}`;
+                const userEmail = localStorage.getItem('userEmail');
+                const userPhone = localStorage.getItem('userPhone');
+                const refLink = `https://aireftraders.ng/register?ref=${userEmail || userPhone}`;
                 navigator.clipboard.writeText(refLink).then(() => {
                     showNotification('Referral link copied! Share with your Nigerian friends');
                 });
@@ -2741,10 +3168,6 @@
                 shareOnSocialMedia('twitter');
             });
             
-            document.getElementById('shareTelegram').addEventListener('click', function() {
-                shareOnSocialMedia('telegram');
-            });
-            
             document.getElementById('shareInstagram').addEventListener('click', function() {
                 shareOnSocialMedia('instagram');
             });
@@ -2773,7 +3196,7 @@
             
             // Close deposit modal
             document.getElementById('closeDepositModal').addEventListener('click', function() {
-                document.getElementById('depositModal').classList.remove('active');
+                document.getElementById('depositModal').class.classList.remove('active');
             });
             
             // Verify account from withdrawal modal
@@ -2812,14 +3235,13 @@
                     // Update the account name field with the verified name
                     document.getElementById('accountName').value = verificationResponse.data.account_name;
                     
-                    // Get user email from Telegram or use a default
-                    const userEmail = tg?.initDataUnsafe?.user?.username ? 
-                        `${tg.initDataUnsafe.user.username}@telegram.com` : 'user@example.com';
+                    // Get user email from localStorage
+                    const userEmail = localStorage.getItem('userEmail');
                     
                     // Initialize payment with backend
                     this.innerHTML = 'Initializing payment...';
                     const paymentResponse = await initiatePayment(
-                        userEmail,
+                        userEmail || 'user@example.com',
                         accountNumber,
                         bankName,
                         verificationResponse.data.account_name
@@ -2832,8 +3254,9 @@
                         return;
                     }
                     
-                    // Redirect to Paystack payment page
-                    window.location.href = paymentResponse.data.authorization_url;
+                    // In a real app, this would redirect to Paystack
+                    // For demo, we'll simulate a successful payment
+                    simulatePaystackPayment();
                     
                 } catch (error) {
                     console.error('Error during verification:', error);
@@ -2842,6 +3265,43 @@
                     this.innerHTML = 'Pay ₦1,050 with Paystack';
                 }
             });
+            
+            // Simulate Paystack payment flow (for demo only)
+            function simulatePaystackPayment() {
+                // Show a confirmation dialog
+                if (confirm('In a real app, this would redirect to Paystack. Simulate successful payment?')) {
+                    // Update user as verified
+                    userData.verified = true;
+                    userData.bankDetails = {
+                        bankName: document.getElementById('bankName').value,
+                        accountNumber: document.getElementById('accountNumber').value,
+                        accountName: document.getElementById('accountName').value
+                    };
+                    
+                    // Add the ₦500 to withdrawable balance
+                    userData.withdrawableProfit = (userData.withdrawableProfit || 0) + 500;
+                    userData.balance += 500;
+                    
+                    // Save the updated data
+                    saveUserData();
+                    
+                    // Close the modal
+                    document.getElementById('bankModal').classList.remove('active');
+                    
+                    // Update the UI
+                    updateUI();
+                    
+                    // Show success message
+                    showSuccess(
+                        'Verification Successful',
+                        'Your bank account has been verified and ₦500 has been added to your withdrawable balance.'
+                    );
+                } else {
+                    // User canceled the simulated payment
+                    document.getElementById('paystackVerifyBtn').disabled = false;
+                    document.getElementById('paystackVerifyBtn').innerHTML = 'Pay ₦1,050 with Paystack';
+                }
+            }
             
             // Event listener for account number input
             document.getElementById('accountNumber').addEventListener('blur', async function () {
@@ -2899,14 +3359,15 @@
                 }
                 
                 try {
-                    const userId = tg?.initDataUnsafe?.user?.id || 'demo-user';
+                    const userEmail = localStorage.getItem('userEmail');
+                    const userPhone = localStorage.getItem('userPhone');
                     
                     // Deduct the amount from withdrawable profit
                     userData.withdrawableProfit = (userData.withdrawableProfit || 0) - amount;
                     
                     // Record transaction
                     await db.transactions.add({
-                        userId: userId,
+                        userId: userEmail || userPhone,
                         type: 'withdrawal',
                         amount: amount,
                         status: 'pending',
@@ -2995,7 +3456,13 @@
             
             // Admin panel button
             document.getElementById('adminPanelBtn').addEventListener('click', function() {
-                window.location.href = 'admin.html';
+                // Check again to prevent unauthorized access
+                if (localStorage.getItem('isAdminAuthenticated') === 'true') {
+                    window.location.href = 'admin.html';
+                } else {
+                    // Redirect to admin login or show error
+                    showNotification('Unauthorized access');
+                }
             });
 
             // Language dropdown change event
@@ -3015,9 +3482,10 @@
                 }
 
                 try {
-                    const userId = tg?.initDataUnsafe?.user?.id || 'demo-user';
+                    const userEmail = localStorage.getItem('userEmail');
+                    const userPhone = localStorage.getItem('userPhone');
                     const ticket = {
-                        userId: userId,
+                        userId: userEmail || userPhone,
                         subject: subject,
                         message: message,
                         status: 'pending',
@@ -3031,12 +3499,6 @@
                     document.getElementById('ticketSubject').value = '';
                     document.getElementById('ticketMessage').value = '';
 
-                    // Notify the admin panel
-                    const adminIframe = document.querySelector('iframe[src="admin.html"]');
-                    if (adminIframe && adminIframe.contentWindow) {
-                        adminIframe.contentWindow.postMessage({ type: 'newSupportTicket', data: ticket }, '*');
-                    }
-
                     showNotification('Support ticket submitted successfully!');
                 } catch (error) {
                     console.error('Error submitting support ticket:', error);
@@ -3047,8 +3509,9 @@
             // Load user tickets into the "My Tickets" section
             async function loadUserTickets() {
                 try {
-                    const userId = tg?.initDataUnsafe?.user?.id || 'demo-user';
-                    const tickets = await db.supportTickets.where('userId').equals(userId).toArray();
+                    const userEmail = localStorage.getItem('userEmail');
+                    const userPhone = localStorage.getItem('userPhone');
+                    const tickets = await db.supportTickets.where('userId').equals(userEmail || userPhone).toArray();
                     const ticketListEl = document.getElementById('ticketList');
 
                     if (!ticketListEl) return;
@@ -3093,296 +3556,36 @@
             if (window.location.pathname.includes('verification-success')) {
                 verifyPayment();
             }
-
-            // Telegram bot referral link
-            const telegramBotLink = 'https://t.me/AIREFTRADERSbot';
-
-            // Function to generate referral link
-            function generateReferralLink(userId) {
-                return `${telegramBotLink}?start=${userId}`;
-            }
-
-            // Example: Update referral link dynamically
-            const userId = tg?.initDataUnsafe?.user?.id;
-            if (!userId) {
-                alert('Unable to retrieve your Telegram user ID. Please open this app inside Telegram.');
-            } else {
-                const referralLink = generateReferralLink(userId);
-
-                // Update referral link in the UI
-                const copyLinkButton = document.getElementById('copyLink');
-                if (copyLinkButton) {
-                    copyLinkButton.addEventListener('click', function () {
-                        navigator.clipboard.writeText(referralLink).then(() => {
-                            showNotification('Referral link copied! Share with your friends.');
-                        });
-                    });
-                }
-
-                // Example: Share referral link on social media
-                function shareReferral(platform) {
-                    let shareUrl = '';
-                    switch (platform) {
-                        case 'whatsapp':
-                            shareUrl = `https://wa.me/?text=${encodeURIComponent(`Join AI REF-TRADERS and start earning today! Use my referral link: ${referralLink}`)}`;
-                            break;
-                        case 'facebook':
-                            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`;
-                            break;
-                        case 'twitter':
-                            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Join AI REF-TRADERS and start earning today! ${referralLink}`)}`;
-                            break;
-                        case 'telegram':
-                            shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Join AI REF-TRADERS and start earning today!')}`;
-                            break;
-                        default:
-                            return;
-                    }
-                    window.open(shareUrl, '_blank');
-                    showNotification(`Sharing to ${platform}...`);
-                }
-
-                // Add event listeners for social media share buttons
-                document.getElementById('shareWhatsApp')?.addEventListener('click', () => shareReferral('whatsapp'));
-                document.getElementById('shareFacebook')?.addEventListener('click', () => shareReferral('facebook'));
-                document.getElementById('shareTwitter')?.addEventListener('click', () => shareReferral('twitter'));
-                document.getElementById('shareTelegram')?.addEventListener('click', () => shareReferral('telegram'));
-            }
-
-            // Track referrals
-            async function trackReferral() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const referrerId = urlParams.get('start');
-                
-                if (referrerId) {
-                    try {
-                        const userId = tg?.initDataUnsafe?.user?.id;
-                        if (userId) {
-                            // Check if this user already has a referrer
-                            const user = await db.users.where('telegramId').equals(userId).first();
-                            
-                            if (user && !user.referrer) {
-                                // Update the user's record with the referrer
-                                await db.users.where('telegramId').equals(userId).modify({ referrer: referrerId });
-                                
-                                // Find the referrer and update their referral count
-                                const referrer = await db.users.where('telegramId').equals(referrerId).first();
-                                if (referrer) {
-                                    const newReferrals = (referrer.referrals || 0) + 1;
-                                    await db.users.where('telegramId').equals(referrerId).modify({ 
-                                        referrals: newReferrals,
-                                        balance: (referrer.balance || 0) + 5000,
-                                        referralEarnings: (referrer.referralEarnings || 0) + 5000
-                                    });
-                                    
-                                    // Show notification to the referrer
-                                    showNotification(`🎉 New referral! You earned ₦5,000. Total referrals: ${newReferrals}`);
-                                }
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error tracking referral:', error);
-                    }
-                }
-            }
-
-            // Call trackReferral on page load
-            trackReferral();
-            
-            // Splash screen functionality
-            function initSplashScreen() {
-                const splashScreen = document.getElementById('splashScreen');
-                const progressBar = document.getElementById('progressBar');
-                const loadingText = document.getElementById('loadingText');
-                
-                // Professional loading messages
-                const loadingMessages = [
-                    "Initializing secure trading environment",
-                    "Connecting to banking partners",
-                    "Authenticating user credentials",
-                    "Loading AI prediction models",
-                    "Optimizing trading algorithms",
-                    "Finalizing security protocols"
-                ];
-                
-                // Simulate professional loading sequence
-                let progress = 0;
-                let currentMessage = 0;
-                
-                function updateProgress() {
-                    // Increment progress with realistic variation
-                    const increment = 2 + Math.random() * 3;
-                    progress = Math.min(progress + increment, 100);
-                    
-                    progressBar.style.width = progress + '%';
-                    
-                    // Update loading message at specific intervals
-                    const messageThresholds = [15, 30, 45, 60, 75, 90];
-                    if (currentMessage < messageThresholds.length && progress >= messageThresholds[currentMessage]) {
-                        loadingText.textContent = loadingMessages[currentMessage];
-                        currentMessage++;
-                    }
-                    
-                    if (progress < 100) {
-                        // Vary timing based on progress
-                        const timing = progress < 30 || progress > 80 ? 100 : 200;
-                        setTimeout(updateProgress, timing + Math.random() * 100);
-                    } else {
-                        // Final completion
-                        loadingText.textContent = "Ready to trade";
-                        completeLoading();
-                    }
-                }
-                
-                function completeLoading() {
-                    // Add slight delay before transition
-                    setTimeout(() => {
-                        splashScreen.style.opacity = '0';
-                        setTimeout(() => {
-                            splashScreen.style.display = 'none';
-                        }, 800);
-                    }, 500);
-                }
-                
-                // Start loading process
-                setTimeout(updateProgress, 800);
-            }
-            
-            // Initialize splash screen
-            initSplashScreen();
         });
-        
-        // Check if user is admin
-        async function checkAdminAccess() {
-            try {
-                const userId = tg?.initDataUnsafe?.user?.id;
-                if (!userId) return;
-                
-                const admin = await db.adminCredentials.where('username').equals('admin').first();
-                if (admin && admin.telegramId === userId) {
-                    document.getElementById('adminPanelBtn').style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Error checking admin access:', error);
-            }
-        }
-        
-        // Update UI
+
+        // Update UI based on user data
         function updateUI() {
             document.getElementById('balanceDisplay').textContent = userData.balance.toLocaleString();
-            document.getElementById('verifiedBadge').textContent = userData.verified ? '✅' : '❌';
             document.getElementById('currentReferrals').textContent = userData.referrals;
             document.getElementById('completedReferrals').textContent = userData.referrals;
-            document.getElementById('referralProgress').value = userData.referrals;
             document.getElementById('referralEarnings').textContent = (userData.referrals * 5000).toLocaleString();
-            document.getElementById('availableBalance').textContent = Math.max(0, userData.withdrawableProfit || 0).toLocaleString();
+            document.getElementById('referralProgress').value = userData.referrals;
+            document.getElementById('paidUsers').textContent = userData.paymentCircle.current;
+            document.getElementById('paymentCircleProgress').value = userData.paymentCircle.current;
+            document.getElementById('availableBalance').textContent = (userData.withdrawableProfit || 0).toLocaleString();
             
-            if (userData.adsWatched >= 20 && userData.referrals >= 6) {
-                userData.tradingActive = true;
-                userData.tradingCapital = 35000;
-                document.getElementById('tradingStatus').innerHTML = 'AI Bot: <b>Active</b> (24h Profit: ₦' + (userData.dailyProfit || 0).toLocaleString() + ')';
+            // Update verified badge
+            document.getElementById('verifiedBadge').textContent = userData.verified ? '✅' : '❌';
+            
+            // Update trading status
+            if (userData.tradingActive) {
+                document.getElementById('tradingStatus').innerHTML = 'AI Bot: <b>Active</b> (Generating ₦' + (userData.dailyProfit || 0).toLocaleString() + ' daily)';
             } else {
                 document.getElementById('tradingStatus').innerHTML = 'AI Bot: <b>Inactive</b> (Complete 6 referrals and 20 ads)';
             }
-            
-            document.getElementById('paidUsers').textContent = (userData.paymentCircle?.current || 0).toLocaleString();
-            document.getElementById('paymentCircleProgress').value = userData.paymentCircle?.current || 0;
-        }
-        
-        // Update login streak
-        async function updateLoginStreak() {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            try {
-                const userId = tg?.initDataUnsafe?.user?.id || 'demo-user';
-                const lastLogin = userData.streak.lastLogin ? new Date(userData.streak.lastLogin) : null;
-                
-                // Check if user logged in today
-                if (!lastLogin || lastLogin < today) {
-                    // Check if consecutive login (yesterday)
-                    const yesterday = new Date(today);
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    
-                    if (lastLogin && lastLogin >= yesterday) {
-                        // Consecutive login - increment streak
-                        userData.streak.count += 1;
-                        if (userData.streak.count > 7) {
-                            userData.streak.count = 1; // Reset streak after day 7
-                        }
-                    } else {
-                        // New streak
-                        userData.streak.count = 1;
-                    }
-                    
-                    // Calculate bonus based on streak day
-                    const bonusAmount = 500 + ((userData.streak.count - 1) * 100); // ₦500 on day 1, +₦100 each day
-                    userData.balance += bonusAmount;
-                    userData.streak.bonus = bonusAmount;
-                    userData.streak.lastLogin = today.toISOString();
-                    
-                    // Save updated data
-                    await saveUserData();
-                    
-                    // Show notification
-                    showNotification(`Daily streak bonus: ₦${bonusAmount}`);
-                    
-                    // Update UI
-                    updateUI();
-                    updateStreakCalendar();
-                }
-            } catch (error) {
-                console.error('Error updating login streak:', error);
-            }
-        }
-        
-        // Share on social media
-        function shareOnSocialMedia(platform) {
-            const refLink = `https://t.me/AIREFTRADERSbot?start=${tg?.initDataUnsafe?.user?.id || 'demo-user'}`;
-            let shareUrl = '';
-            
-            switch (platform) {
-                case 'whatsapp':
-                    shareUrl = `https://wa.me/?text=${encodeURIComponent(`Join AI REF-TRADERS and start earning today! Use my referral link: ${refLink}`)}`;
-                    break;
-                case 'facebook':
-                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(refLink)}`;
-                    break;
-                case 'twitter':
-                    shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Join AI REF-TRADERS and start earning today! ${refLink}`)}`;
-                    break;
-                case 'telegram':
-                    shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent('Join AI REF-TRADERS and start earning today!')}`;
-                    break;
-                case 'instagram':
-                    // Instagram doesn't support direct sharing, so we'll just copy to clipboard
-                    navigator.clipboard.writeText(refLink).then(() => {
-                        showNotification('Referral link copied! Paste it in your Instagram bio or posts');
-                    });
-                    return;
-                default:
-                    return;
-            }
-            
-            window.open(shareUrl, '_blank');
-            showNotification(`Sharing to ${platform}...`);
-        }
-        
-        // Update balance display
-        function updateBalance() {
-            document.getElementById('balanceDisplay').textContent = userData.balance.toLocaleString();
-            document.getElementById('availableBalance').textContent = Math.max(0, userData.withdrawableProfit || 0).toLocaleString();
         }
         
         // Show notification
         function showNotification(message) {
             const notification = document.getElementById('notification');
-            const notificationText = document.getElementById('notificationText');
-            
-            if (!notification || !notificationText) return;
-            
-            notificationText.textContent = message;
+            document.getElementById('notificationText').textContent = message;
             notification.classList.add('show');
+            
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
@@ -3390,198 +3593,231 @@
         
         // Show success modal
         function showSuccess(title, message) {
-            const successTitle = document.getElementById('successTitle');
-            const successMessage = document.getElementById('successMessage');
-            const successModal = document.getElementById('successModal');
-            
-            successTitle.textContent = title;
-            successMessage.textContent = message;
-            successModal.classList.add('active');
+            document.getElementById('successTitle').textContent = title;
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successModal').classList.add('active');
         }
         
-        // Simulate trading
-        async function simulateTrading() {
-            if (userData.tradingActive) {
-                try {
-                    const userId = tg?.initDataUnsafe?.user?.id || 'demo-user';
-                    
-                    // Calculate random profit (20-50% of capital)
-                    const profitPercentage = 20 + Math.random() * 30; // 20-50%
-                    const totalProfit = Math.floor(userData.tradingCapital * (profitPercentage / 100));
-                    
-                    // Distribute profits
-                    const userShare = Math.floor(totalProfit * 0.7); // 70% to user
-                    const companyShare = Math.floor(totalProfit * 0.25); // 25% to company
-                    const systemFee = totalProfit - userShare - companyShare; // 5% system fee
-                    
-                    // Update user data
-                    userData.dailyProfit = userShare;
-                    userData.totalProfit += userShare;
-                    userData.withdrawableProfit += userShare;
-                    userData.balance += userShare;
-                    
-                    // Save to database
-                    await saveUserData();
-                    
-                    updateBalance();
-                    updateUI();
-                    
-                    if (Math.random() > 0.7) {
-                        showNotification('💸 Profit earned: ₦' + Math.floor(userShare).toLocaleString());
-                    }
-                    
-                    if (Math.random() > 0.8) {
-                        userData.paymentCircle.current = (userData.paymentCircle?.current || 0) + Math.floor(Math.random() * 50) + 10;
-                        updateUI();
-                    }
-                } catch (error) {
-                    console.error('Error simulating trading:', error);
-                }
-            }
-        }
-        
-        // Toggle FAQ answer visibility
-        function toggleFaq(index) {
-            const answer = document.getElementById('faq' + index);
-            if (answer) {
-                answer.classList.toggle('show');
-            }
-        }
-        
-        // ===== TESTIMONIAL ROTATION =====
+        // Testimonial rotation
         let currentTestimonial = 1;
-        const totalTestimonials = 15;
         let testimonialInterval;
-        let isPaused = false;
         
         function showTestimonial(index) {
-            // Handle wrap-around
-            if (index > totalTestimonials) index = 1;
-            if (index < 1) index = totalTestimonials;
-            
-            // Hide all testimonials
-            document.querySelectorAll('.testimonial').forEach(t => {
-                t.classList.remove('show');
+            document.querySelectorAll('.testimonial').forEach(testimonial => {
+                testimonial.classList.remove('show');
             });
             
-            // Show the selected one
-            const testimonial = document.getElementById('testimonial' + index);
-            if (testimonial) {
-                testimonial.classList.add('show');
-            }
-            
-            // Update dots
             document.querySelectorAll('.testimonial-dot').forEach(dot => {
                 dot.classList.remove('active');
             });
             
-            const activeDot = document.querySelector('.testimonial-dot[data-testimonial="' + index + '"]');
-            if (activeDot) {
-                activeDot.classList.add('active');
-            }
+            document.getElementById('testimonial' + index).classList.add('show');
+            document.querySelector(`.testimonial-dot[data-testimonial="${index}"]`).classList.add('active');
             
             currentTestimonial = index;
         }
         
         function startTestimonialRotation() {
-            // Clear any existing interval
-            if (testimonialInterval) {
-                clearInterval(testimonialInterval);
-            }
-            
-            // Set up new interval (6 seconds)
             testimonialInterval = setInterval(() => {
-                if (!isPaused) {
-                    showTestimonial(currentTestimonial + 1);
-                }
-            }, 6000);
+                let nextTestimonial = currentTestimonial + 1;
+                if (nextTestimonial > 15) nextTestimonial = 1;
+                showTestimonial(nextTestimonial);
+            }, 8000);
         }
         
         function setupTestimonialDots() {
             document.querySelectorAll('.testimonial-dot').forEach(dot => {
-                dot.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    isPaused = true;
-                    
-                    // Resume after 10 seconds of inactivity
-                    setTimeout(() => {
-                        isPaused = false;
-                    }, 10000);
-                    
-                    const testimonialIndex = parseInt(dot.getAttribute('data-testimonial'));
-                    showTestimonial(testimonialIndex);
+                dot.addEventListener('click', function() {
+                    clearInterval(testimonialInterval);
+                    showTestimonial(this.dataset.testimonial);
+                    startTestimonialRotation();
                 });
             });
-            
-            // Pause when hovering over testimonials
-            document.querySelector('.testimonial-container').addEventListener('mouseenter', () => {
-                isPaused = true;
-            });
-            
-            document.querySelector('.testimonial-container').addEventListener('mouseleave', () => {
-                isPaused = false;
-            });
         }
         
-        // ===== REFERRAL TEXT ROTATION =====
+        // Referral text rotation
         const referralTexts = [
             "Earn ₦5,000 for each friend who signs up and watches 20 ads!",
-            "Share your link with 6 friends to unlock AI Trading!",
-            "Get ₦30,000 trading capital from 6 successful referrals!",
-            "Your friends get ₦5,000 too when they sign up with your link!",
-            "The more you refer, the more you earn - start sharing today!",
-            "Limited time offer: Complete 6 referrals for bonus ₦20,000!",
-            "Referral earnings paid directly to your Nigerian bank account!",
-            "Nigerians are earning ₦7,000-₦17,500 daily with our AI trading!",
-            "Your referrals help build the Nigerian digital economy!",
-            "Share with friends and family - everyone benefits!"
+            "Complete 6 referrals to unlock AI trading and earn ₦7,000-₦17,500 daily!",
+            "Share your link on WhatsApp groups for quick referrals!",
+            "Your friends get ₦5,000 starting balance too!",
+            "Limited time offer: Refer 6 friends in 24 hours for ₦20,000 bonus!"
         ];
         
-        let currentReferralTextIndex = 0;
+        let currentReferralText = 0;
         
         function rotateReferralText() {
-            const rotator = document.getElementById('referralTextRotator');
-            if (rotator) {
-                rotator.textContent = referralTexts[currentReferralTextIndex];
-                currentReferralTextIndex = (currentReferralTextIndex + 1) % referralTexts.length;
+            setInterval(() => {
+                currentReferralText = (currentReferralText + 1) % referralTexts.length;
+                const textElement = document.getElementById('referralTextRotator');
+                
+                // Fade out
+                textElement.style.opacity = '0';
+                
+                setTimeout(() => {
+                    // Change text
+                    textElement.textContent = referralTexts[currentReferralText];
+                    
+                    // Fade in
+                    textElement.style.opacity = '1';
+                }, 500);
+            }, 5000);
+        }
+        
+        // Simulate trading activity
+        function simulateTrading() {
+            if (userData.tradingActive) {
+                // Calculate daily profit (20-50% of trading capital)
+                const profitRate = 0.2 + (Math.random() * 0.3); // 20-50%
+                const dailyProfit = Math.round(userData.tradingCapital * profitRate / 30); // Daily profit (monthly rate / 30)
+                
+                userData.dailyProfit = dailyProfit;
+                userData.totalProfit = (userData.totalProfit || 0) + dailyProfit;
+                userData.withdrawableProfit = (userData.withdrawableProfit || 0) + (dailyProfit * 0.7); // 70% of profit goes to user
+                userData.balance += dailyProfit * 0.7;
+                
+                // Save the updated data
+                saveUserData();
+                
+                // Update the UI
+                updateUI();
+                
+                // Show notification
+                showNotification(`🤖 AI Trading generated ₦${dailyProfit.toLocaleString()} profit!`);
             }
         }
         
-        // Start rotating referral texts every 8 seconds
-        setInterval(rotateReferralText, 8000);
-
-        function redirectToFutureInvestment() {
-            // Switch to the Info tab
-            document.querySelector('.tab[data-tab="info"]').click();
-            // Scroll to the Future Investment Opportunities section
-            document.querySelector('.investment-section').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Listen for notifications from admin.html
-        window.addEventListener('message', function(event) {
-            if (event.data.type === 'adminNotification') {
-                const redDot = document.getElementById('redDot');
-                redDot.style.display = 'block'; // Show the blinking red dot
+        // Update login streak
+        function updateLoginStreak() {
+            const today = new Date().toDateString();
+            
+            if (!userData.streak) {
+                userData.streak = {
+                    count: 0,
+                    lastLogin: null,
+                    bonus: 0
+                };
             }
-        });
-
-        // Hide the red dot when the bell is clicked
-        document.getElementById('notificationBell').addEventListener('click', function() {
-            const redDot = document.getElementById('redDot');
-            redDot.style.display = 'none'; // Hide the red dot
-        });
-
-        // Example: Simulate receiving a notification from admin.html
-        setTimeout(() => {
-            window.postMessage({ type: 'adminNotification', message: 'Check out the latest updates!' }, '*');
-        }, 5000);
+            
+            if (userData.streak.lastLogin !== today) {
+                // Check if this is consecutive day
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayString = yesterday.toDateString();
+                
+                if (userData.streak.lastLogin === yesterdayString) {
+                    // Consecutive day - increase streak
+                    userData.streak.count++;
+                } else {
+                    // Not consecutive - reset streak
+                    userData.streak.count = 1;
+                }
+                
+                // Calculate bonus (₦500 on day 1, +₦100 each day, max ₦1,100 on day 7)
+                userData.streak.bonus = Math.min(500 + ((userData.streak.count - 1) * 100), 1100);
+                
+                // Add bonus to balance
+                userData.balance += userData.streak.bonus;
+                
+                // Update last login
+                userData.streak.lastLogin = today;
+                
+                // Save user data
+                saveUserData();
+                
+                // Show notification
+                showNotification(`🔥 Day ${userData.streak.count} streak! ₦${userData.streak.bonus} bonus added.`);
+            }
+            
+            // Update streak calendar
+            updateStreakCalendar();
+        }
+        
+        // Toggle FAQ items
+        function toggleFaq(id) {
+            const faqAnswer = document.getElementById('faq' + id);
+            const faqQuestion = faqAnswer.previousElementSibling;
+            
+            if (faqAnswer.classList.contains('show')) {
+                faqAnswer.classList.remove('show');
+                faqQuestion.querySelector('span').textContent = '+';
+            } else {
+                // Close all other FAQs
+                document.querySelectorAll('.faq-answer').forEach(item => {
+                    item.classList.remove('show');
+                    item.previousElementSibling.querySelector('span').textContent = '+';
+                });
+                
+                // Open this FAQ
+                faqAnswer.classList.add('show');
+                faqQuestion.querySelector('span').textContent = '-';
+            }
+        }
+        
+        // Share on social media
+        function shareOnSocialMedia(platform) {
+            const userEmail = localStorage.getItem('userEmail');
+            const userPhone = localStorage.getItem('userPhone');
+            const referralLink = `https://aireftraders.ng/register?ref=${userEmail || userPhone}`;
+            const message = "Join AI REF-TRADERS and earn daily profits from AI trading! Use my referral link:";
+            
+            let shareUrl = '';
+            
+            switch (platform) {
+                case 'whatsapp':
+                    shareUrl = `https://wa.me/?text=${encodeURIComponent(message + ' ' + referralLink)}`;
+                    break;
+                case 'facebook':
+                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}&quote=${encodeURIComponent(message)}`;
+                    break;
+                case 'twitter':
+                    shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message + ' ' + referralLink)}`;
+                    break;
+                case 'instagram':
+                    // Instagram doesn't support direct sharing via URL, show a notification instead
+                    showNotification('Copy the link and share it on Instagram!');
+                    navigator.clipboard.writeText(referralLink);
+                    return;
+                default:
+                    break;
+            }
+            
+            if (shareUrl) {
+                window.open(shareUrl, '_blank');
+            }
+        }
+        
+        // Check if user has admin access
+        function checkAdminAccess() {
+            // Get admin status from a secure source
+            const isAdmin = localStorage.getItem('isAdminAuthenticated') === 'true';
+            
+            // Only show admin button if user is authenticated as admin
+            if (isAdmin) {
+                document.getElementById('adminPanelBtn').style.display = 'block';
+            } else {
+                document.getElementById('adminPanelBtn').style.display = 'none';
+            }
+        }
+        
+        // Redirect to future investment section
+        function redirectToFutureInvestment() {
+            document.getElementById('depositModal').classList.remove('active');
+            
+            // Switch to info tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('.tab[data-tab="info"]').classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('infoTab').classList.add('active');
+            
+            // Scroll to investment section
+            setTimeout(() => {
+                document.querySelector('.investment-section').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
     </script>
-    <script src="js/paystack-integration.js"></script>
-    <script src="js/batch-processing.js"></script>
-    <script src="js/admin-integration.js"></script>
-    <!-- Telegram Authentication Scripts -->
-    <script src="js/telegram-auth.js"></script>
-    <script src="js/auth-check.js"></script>
-    <script src="js/app-init.js"></script>
 </body>
 </html>
