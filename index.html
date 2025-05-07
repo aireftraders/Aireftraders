@@ -2981,7 +2981,8 @@
             
             // Withdraw button
             document.getElementById('withdrawBtn').addEventListener('click', function() {
-                document.getElementById('withdrawalModal').class.add('active');
+                const withdrawalModal = document.getElementById('withdrawalModal');
+                withdrawalModal.classList.add('active');
                 if (!userData.verified) {
                     document.getElementById('verificationNotice').style.display = 'block';
                     document.getElementById('withdrawalForm').style.display = 'none';
@@ -3865,10 +3866,10 @@
         });
 
         // User Profile Modal
-        document.getElementById('profileBtn').addEventListener('click', () => {
+        document.getElementById('profileBtn').addEventListener('click', function() {
             const profileModal = document.getElementById('profileModal');
-            profileModal.querySelector('#profileName').textContent = currentUser.name;
-            profileModal.querySelector('#profileEmail').textContent = currentUser.email;
+            profileModal.querySelector('#profileName').textContent = currentUser?.name || 'N/A';
+            profileModal.querySelector('#profileEmail').textContent = currentUser?.email || 'N/A';
             profileModal.style.display = 'block';
         });
 
